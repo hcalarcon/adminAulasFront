@@ -18,6 +18,7 @@ export default function MateriasCard({
   alarcoin,
 }: Props) {
   const { colors } = useTheme();
+  console.log(porcentaje);
   const getColorFromPorcentaje = (porcentaje: number) => {
     if (porcentaje === 0) return ["transparent", "transparent"];
     if (porcentaje < 60) return [colors.background, colors.asistenciaMala]; // rojo

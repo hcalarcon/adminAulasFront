@@ -4,7 +4,7 @@ import { ClaseType } from "../types/AulaType";
 export async function clasesMateria(
   aulaId: number,
   token: string | null
-): Promise<ClaseType> {
+): Promise<ClaseType[]> {
   const response = await fetch(`${urlBase}/clases/aulas/${aulaId}/clases`, {
     method: "GET",
     headers: {

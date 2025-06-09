@@ -1,6 +1,6 @@
 import { Layout } from "../layout/layout";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Text } from "react-native-paper";
+import { Button, IconButton, Text } from "react-native-paper";
 import { useAuth } from "../context/authContent";
 import MateriasCard from "../components/materiaCard";
 import { useNavigation } from "@react-navigation/native";
@@ -12,6 +12,9 @@ import { useAppData } from "../context/appDataContext";
 import { useEffect, useState } from "react";
 import { AsistenciaAlumnoType, AsistenciaType } from "../types/AsistenciaType";
 import { getAsistenciasPorClase } from "../api/asistenciasClases";
+import { getAsistenciasStorage, saveAsistencias } from "../utils/storage";
+
+import { Ionicons } from "@expo/vector-icons";
 type Props = NativeStackNavigationProp<RootStack, "MateriasStack">;
 
 const Materias = () => {
@@ -23,14 +26,37 @@ const Materias = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [asistencias, setAsistencias] = useState<AsistenciaAlumnoType[]>([]);
-  useEffect(() => {
-    const fetchAsistencias = async (token: string) => {
+
+  const getAsistencias = async () => {
+    setIsLoading(true);
+    try {
       const data = await getAsistenciasPorClase(token);
       setAsistencias(data);
+      await saveAsistencias(data); // actualizar local también
+    } catch (error) {
+      console.error("Error recargando asistencias", error);
+    } finally {
       setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAsistencias = async () => {
+      setIsLoading(true);
+
+      // 1. Intentar obtener desde local
+      const local = await getAsistenciasStorage();
+      if (local) {
+        setAsistencias(local);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Si no hay local, fetch desde backend
+      getAsistencias();
     };
 
-    if (!user?.is_teacher) fetchAsistencias(token);
+    if (!user?.is_teacher) fetchAsistencias();
   }, [isLoading]);
 
   const handlerNavigation = (
@@ -46,14 +72,27 @@ const Materias = () => {
   return (
     <Layout>
       <View style={styles.header}>
-        <Text variant="titleLarge" style={styles.title}>
-          Mis Materias
-        </Text>
-        <Text variant="bodyMedium" style={styles.subtitle}>
-          {user?.is_teacher
-            ? "Lista de materias que dictas"
-            : "Lista de materias que cursas"}
-        </Text>
+        <View>
+          <Text variant="titleLarge" style={styles.title}>
+            Mis Materias
+          </Text>
+          <Text variant="bodyMedium" style={styles.subtitle}>
+            {user?.is_teacher
+              ? "Lista de materias que dictas"
+              : "Lista de materias que cursas"}
+          </Text>
+        </View>
+
+        <Button
+          mode="contained"
+          style={styles.button}
+          onPress={getAsistencias}
+          icon={({ color, size }) => (
+            <Ionicons name="refresh" color={color} size={size} />
+          )}
+        >
+          Refrescar
+        </Button>
       </View>
 
       <ScrollView
@@ -105,6 +144,9 @@ const styles = StyleSheet.create({
 
   header: {
     marginBottom: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignContent: "center",
   },
   title: {
     fontWeight: "bold",
@@ -143,5 +185,9 @@ const styles = StyleSheet.create({
   classCount: {
     marginTop: 2,
     fontWeight: "600",
+  },
+  button: {
+    borderRadius: 8,
+    marginVertical: 10,
   },
 });

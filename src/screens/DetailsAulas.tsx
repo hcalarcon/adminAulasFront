@@ -9,8 +9,9 @@ import { useAuth } from "../context/authContent";
 import { ClaseType } from "../types/AulaType";
 import ClaseCard from "../components/claseCard";
 import { useWindowDimensions } from "react-native";
-import { getFromStorage } from "../utils/storage";
+import { getClasesStorage, getFromStorage, saveClases } from "../utils/storage";
 import { Layout } from "../layout/layout";
+import LoadError from "../components/LoadError";
 type Props = RouteProp<MateriasStackParamList, "DetalleMateria">;
 
 export default function DetallesMaterias() {
@@ -24,14 +25,25 @@ export default function DetallesMaterias() {
   const [error, setError] = useState(false);
   const { colors } = useTheme();
 
-  const getClases = async () => {
+  const getClases = async (forzarBackend = false) => {
     let efectiveToken = token;
     if (!token) {
       efectiveToken = await getFromStorage("token");
     }
     try {
+      if (!forzarBackend) {
+        const local = await getClasesStorage(materia.id);
+        if (local) {
+          setClases(local);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Si no hay local o se fuerza el fetch
       const data = await clasesMateria(materia.id, efectiveToken);
       setClases(data);
+      await saveClases(materia.id, data); // guardar local
     } catch (error) {
       console.log("error al obtener las clases", error);
       setError(true);
@@ -48,8 +60,7 @@ export default function DetallesMaterias() {
   const isSmallDevice = width < 600;
   useEffect(() => {
     getClases();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, []);
 
   const handleGoBack = () => {
     navigation.goBack();
@@ -119,19 +130,27 @@ export default function DetallesMaterias() {
             </Text>
           </View>
 
-          <View>
-            <View style={styles.scheduleRow}>
-              <Ionicons name="clipboard" size={14} color="#6B7280" />
-              <Text variant="bodySmall" style={styles.subjectSchedule}>
-                {`${materia.ano}° ${materia.division}° - ${materia.especialidad}`}
-              </Text>
-            </View>
-          </View>
+          <View style={styles.scheduleRow}>
+            <Button
+              mode="contained"
+              style={styles.addButton}
+              onPress={() => getClases(true)}
+              icon={({ color, size }) => (
+                <Ionicons name="refresh" color={color} size={size} />
+              )}
+            >
+              Refrescar
+            </Button>
 
-          {user?.is_teacher && (
-            <View>
+            {user?.is_teacher && (
               <Button
-                icon="plus"
+                icon={({ color, size }) => (
+                  <Ionicons
+                    name="add-circle-outline"
+                    color={color}
+                    size={size}
+                  />
+                )}
                 mode="contained"
                 onPress={handleAddClass}
                 contentStyle={styles.addButtonContent}
@@ -139,8 +158,8 @@ export default function DetallesMaterias() {
               >
                 Agregar Clase
               </Button>
-            </View>
-          )}
+            )}
+          </View>
         </View>
 
         {isLoading ? (
@@ -193,7 +212,7 @@ export default function DetallesMaterias() {
               showsVerticalScrollIndicator={false}
             >
               {clasesFiltradas.length === 0 ? (
-                <View style={styles.centered}>
+                <View>
                   <Ionicons
                     name="information-circle-outline"
                     size={48}
@@ -232,7 +251,7 @@ export default function DetallesMaterias() {
                             maxWidth: `${100 / numColumns}%`,
                           }}
                         >
-                          <View style={styles.cardShadow}>
+                          <View>
                             <ClaseCard
                               clase={item}
                               asistencia={asistenciaDeEstaClase}
@@ -259,9 +278,11 @@ export default function DetallesMaterias() {
               )}
             </ScrollView>
             {user?.is_teacher && (
-              <View style={styles.fabContainer}>
+              <View>
                 <Button
-                  icon="plus"
+                  icon={({ color, size }) => (
+                    <Ionicons name="add-circle" color={color} size={size} />
+                  )}
                   mode="contained"
                   onPress={handleAddClass}
                   contentStyle={styles.addButtonContent}
@@ -314,7 +335,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
+    marginVertical: 8,
   },
   addButton: {
     borderRadius: 8,

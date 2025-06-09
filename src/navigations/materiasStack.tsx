@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Materias from "../screens/mis-materias";
-import DetalleMateria from "../screens/DetailsMaterias";
+import Materias from "../screens/MisAulas";
+import DetalleMateria from "../screens/DetailsAulas";
 import { MateriasStackParamList } from "../types/route";
 
 const Stack = createNativeStackNavigator<MateriasStackParamList>();

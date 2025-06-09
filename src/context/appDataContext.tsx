@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "./authContent";
 import { User as AlumnoType } from "../types/UserType";
-import { MateriasSimpleType, MateriasType } from "../types/AulaType";
+import {
+  MateriasAlumnosType,
+  MateriasSimpleType,
+  MateriasType,
+} from "../types/AulaType";
 import { getalumnosAulas, getMisAulas } from "../api/aulas";
 import {
   getAlumnosStorage,
@@ -9,8 +13,12 @@ import {
   getFromStorage,
   saveAlumnos,
   saveAula,
+  saveAlarcoinsAlumno,
+  saveAlarcoinsProfe,
+  getAlarcoinsAlumno as getAlarcoinsAlumnoFromStorage,
+  getAlarcoinsProfe as getAlarcoinsProfeFromStorage,
 } from "../utils/storage";
-import { Alarcoin } from "../types/AlarcoinType";
+import { Alarcoin, AlarcoinAulaAlumnoType } from "../types/AlarcoinType";
 import { getHistorialProfesor, getAlarcoinsAlumno } from "../api/alarcoin";
 
 interface AppDataContextType {
@@ -18,21 +26,14 @@ interface AppDataContextType {
   alumnosMap: Record<number, AlumnoType>;
   isLoading: boolean;
   loadData: (token: string) => void;
-  alarcoins: Alarcoin[] | null;
+  alarcoins:
+    | Alarcoin[]
+    | null
+    | MateriasAlumnosType[]
+    | AlarcoinAulaAlumnoType[];
   loadAlarcoins: () => void;
   alarcoinsError: boolean;
 }
-
-type AulaConAlumnos = {
-  id: number;
-  nombre: string;
-  ano: number;
-  division: number;
-  especialidad: string;
-  profesor_id: number;
-  cantidad_clases: number;
-  alumnos: AlumnoType[];
-};
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
@@ -45,7 +46,9 @@ export const AppDataProvider = ({
   const [aulas, setAulas] = useState<MateriasSimpleType[]>([]);
   const [alumnosMap, setAlumnosMap] = useState<Record<number, AlumnoType>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [alarcoins, setAlarcoins] = useState<Alarcoin[] | null>(null);
+  const [alarcoins, setAlarcoins] = useState<
+    Alarcoin[] | null | MateriasAlumnosType[] | AlarcoinAulaAlumnoType[]
+  >(null);
   const [alarcoinsError, setAlarcoinsError] = useState(false);
 
   const calcularCantidadAlarcoins = (alarcoins: any[]) => {
@@ -53,15 +56,18 @@ export const AppDataProvider = ({
       return acc + (item.suma ? item.cantidad : -item.cantidad);
     }, 0);
   };
-  const alarcoinProfe = async (data) => {
-    const actualizarCantidadAlarcoins = (alarcoinsData: AulaConAlumnos[]) => {
-      // const nuevoMap = { ...alumnosMap };
+
+  //alarcoin si el usuario es profesor
+  const alarcoinProfe = async (data: MateriasAlumnosType[]) => {
+    const actualizarCantidadAlarcoins = (
+      alarcoinsData: MateriasAlumnosType[]
+    ) => {
       const nuevoMap: Record<number, AlumnoType> = { ...alumnosMap };
 
       Object.keys(nuevoMap).forEach((id) => {
         nuevoMap[+id] = {
           ...nuevoMap[+id],
-          alarcoin: 0, // 👈 limpiar antes de asignar
+          alarcoin: 0,
         };
       });
 
@@ -79,9 +85,11 @@ export const AppDataProvider = ({
     };
     actualizarCantidadAlarcoins(data);
     setAlarcoins(data);
+    await saveAlarcoinsProfe(data);
   };
-  const alarcoinAlumno = async (data) => {
+  const alarcoinAlumno = async (data: AlarcoinAulaAlumnoType[]) => {
     setAlarcoins(data);
+    await saveAlarcoinsAlumno(data);
   };
 
   const loadAlarcoins = async () => {
@@ -91,6 +99,7 @@ export const AppDataProvider = ({
     }
 
     setAlarcoinsError(false);
+
     try {
       let data;
       if (user?.is_teacher) {
@@ -102,6 +111,19 @@ export const AppDataProvider = ({
       }
     } catch (error) {
       console.error("Error cargando alarcoins:", error);
+
+      try {
+        if (user?.is_teacher) {
+          const local = await getAlarcoinsProfeFromStorage();
+          if (local) await alarcoinProfe(local);
+        } else {
+          const local = await getAlarcoinsAlumnoFromStorage();
+          if (local) await alarcoinAlumno(local);
+        }
+      } catch (e) {
+        console.error("Error cargando alarcoins desde storage:", e);
+      }
+
       setAlarcoinsError(true);
     }
   };
@@ -139,7 +161,9 @@ export const AppDataProvider = ({
         return;
       }
 
-      const aulasData: AulaConAlumnos[] = await getalumnosAulas(tokenParam);
+      const aulasData: MateriasAlumnosType[] = await getalumnosAulas(
+        tokenParam
+      );
       const alumnosMapTemp: Record<number, AlumnoType> = {};
       const aulasSinAlumnos = aulasData.map((aula) => {
         aula.alumnos.forEach((alumno) => {

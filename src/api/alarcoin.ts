@@ -1,9 +1,9 @@
 import {
   Alarcoin,
-  AlarcoinAlumnoType,
   AlarcoinAulaAlumnoType,
   AlarcoinCreateType,
 } from "../types/AlarcoinType";
+import { MateriasAlumnosType } from "../types/AulaType";
 import { urlBase } from "../utils/url";
 
 // Crear alarcoin
@@ -77,7 +77,7 @@ export async function getAlarcoinsAlumno(
 // Obtener historial del profesor
 export async function getHistorialProfesor(
   token: string | null
-): Promise<AlarcoinAlumnoType[]> {
+): Promise<MateriasAlumnosType[]> {
   const response = await fetch(`${urlBase}/alarcoins/historial`, {
     headers: {
       Authorization: `Bearer ${token}`,

@@ -299,6 +299,7 @@ const AlarcoinModal = ({
                         <Card.Title
                           title={
                             <View
+                              key={aula.aula_id}
                               style={{
                                 flexDirection: "row",
                                 alignItems: "center",
@@ -318,9 +319,10 @@ const AlarcoinModal = ({
                           }
                         />
                         <Card.Content>
-                          {aula.alarcoins.map((entry, index) => (
-                            <View key={index}>
+                          {aula.alarcoins.map((entry) => (
+                            <View key={entry.id}>
                               <View
+                                key={entry.id}
                                 style={{
                                   flexDirection: "row",
                                   justifyContent: "space-between",

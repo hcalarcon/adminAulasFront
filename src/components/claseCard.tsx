@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Card, Text, Button, useTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import { ClaseType, MateriasSimpleType } from "../types/AulaType";
+import { ClaseType } from "../types/AulaType";
 import ModalAsistencia from "./ModalAsistencias";
 import { useAuth } from "../context/authContent";
 import { AsistenciaType } from "../types/AsistenciaType";
@@ -10,7 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 type Props = {
   clase: ClaseType;
-  asistencia: AsistenciaType;
+  asistencia: AsistenciaType | undefined;
 };
 
 export default function ClaseCard({ clase, asistencia }: Props) {
@@ -84,7 +84,9 @@ export default function ClaseCard({ clase, asistencia }: Props) {
             {user?.is_teacher && (
               <Button
                 mode="outlined"
-                icon="account-check-outline"
+                icon={({ color, size }) => (
+                  <Ionicons name="checkmark-circle" color={color} size={size} />
+                )}
                 style={styles.attendanceButton}
                 onPress={() => setModalVisible(true)}
               >

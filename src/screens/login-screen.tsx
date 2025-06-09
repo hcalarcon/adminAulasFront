@@ -16,7 +16,7 @@ import { Layout } from "../layout/layout";
 import { saveToStorage, saveUser } from "../utils/storage";
 import { useAuth } from "../context/authContent";
 import { useAppData } from "../context/appDataContext";
-import { Button } from "react-native-paper";
+import { Button, useTheme } from "react-native-paper";
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email("Email inválido").required("Requerido"),
@@ -27,6 +27,7 @@ export default function LoginScreen() {
   const navigation = useNavigation();
   const { loading, setUser, setToken } = useAuth();
   const { loadData } = useAppData();
+  const { colors } = useTheme();
   const handleLogin = async (
     values: { email: string; password: string },
     setSubmitting: (isSubmitting: boolean) => void,
@@ -105,7 +106,14 @@ export default function LoginScreen() {
                     <Text style={styles.error}>{errors.password}</Text>
                   )}
 
-                  <Button onPress={handleSubmit}>
+                  <Button
+                    onPress={handleSubmit}
+                    style={{
+                      backgroundColor: colors.backdrop,
+                      paddingVertical: 8,
+                      marginTop: 15,
+                    }}
+                  >
                     {isSubmitting ? (
                       <ActivityIndicator color="#fff" />
                     ) : (
@@ -161,13 +169,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 20,
-    alignItems: "center",
   },
   buttonText: {
     color: "#fff",

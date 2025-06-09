@@ -295,7 +295,9 @@ const Profile = () => {
                         width < 400 && { width: "100%", alignSelf: "center" },
                       ]}
                       mode="contained"
-                      icon="pencil"
+                      icon={({ color, size }) => (
+                        <Ionicons name="pencil" color={color} size={size} />
+                      )}
                       onPress={handleEdit}
                       labelStyle={{ color: colors.onPrimary, fontSize: 16 }}
                       contentStyle={{ paddingVertical: 8 }}

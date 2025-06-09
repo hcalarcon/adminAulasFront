@@ -208,74 +208,53 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
                           value={valuePresente}
                         >
                           <View style={styles.radioRowFixed}>
-                            <RadioButton.Item
-                              label={isMobile ? "P" : "Presente"}
-                              value="1"
-                              style={styles.radioItemFixed}
-                              labelStyle={
-                                isMobile
-                                  ? styles.radioLabelMobile
-                                  : styles.radioLabel
-                              }
-                            />
-                            <RadioButton.Item
-                              label={isMobile ? "A" : "Ausente"}
-                              value="2"
-                              style={styles.radioItemFixed}
-                              labelStyle={
-                                isMobile
-                                  ? styles.radioLabelMobile
-                                  : styles.radioLabel
-                              }
-                            />
-                            <RadioButton.Item
-                              label={isMobile ? "T" : "Tarde"}
-                              value="3"
-                              style={styles.radioItemFixed}
-                              labelStyle={
-                                isMobile
-                                  ? styles.radioLabelMobile
-                                  : styles.radioLabel
-                              }
-                            />
-                            <RadioButton.Item
-                              label={isMobile ? "NC" : "No corresponde"}
-                              value="0"
-                              style={styles.radioItemFixed}
-                              labelStyle={
-                                isMobile
-                                  ? styles.radioLabelMobile
-                                  : styles.radioLabel
-                              }
-                            />
+                            {[
+                              {
+                                label: isMobile ? "P" : "Presente",
+                                value: "1",
+                              },
+                              { label: isMobile ? "A" : "Ausente", value: "2" },
+                              { label: isMobile ? "T" : "Tarde", value: "3" },
+                              {
+                                label: "NC",
+                                value: "0",
+                              },
+                            ].map((item) => (
+                              <Pressable
+                                key={item.value}
+                                style={styles.radioItemPressable}
+                                onPress={() =>
+                                  handleChange(alumno.id, parseInt(item.value))
+                                }
+                              >
+                                <RadioButton
+                                  value={item.value}
+                                  status={
+                                    valuePresente === item.value
+                                      ? "checked"
+                                      : "unchecked"
+                                  }
+                                  onPress={() =>
+                                    handleChange(
+                                      alumno.id,
+                                      parseInt(item.value)
+                                    )
+                                  }
+                                />
+                                <Text
+                                  style={[
+                                    isMobile
+                                      ? styles.radioLabelMobile
+                                      : styles.radioLabel,
+                                    styles.radioLabelText,
+                                  ]}
+                                >
+                                  {item.label}
+                                </Text>
+                              </Pressable>
+                            ))}
                           </View>
                         </RadioButton.Group>
-
-                        {/* <RadioButton.Group
-                          onValueChange={(value) =>
-                            handleChange(alumno.id, parseInt(value))
-                          }
-                          value={valuePresente}
-                        >
-                          <View style={styles.radioRow}>
-                            <RadioButton.Item
-                              label={isMobile ? "P" : "Presente"}
-                              value="1"
-                            />
-                            <RadioButton.Item
-                              label={isMobile ? "A" : "Ausente"}
-                              value="2"
-                            />
-                            <RadioButton.Item
-                              label={isMobile ? "T" : "Tarde"}
-                              value="3"
-                            />
-                            <RadioButton.Item
-                              label={isMobile ? "NC" : "No corresponde"}
-                              value="0"
-                            />
-                          </View>
-                        </RadioButton.Group> */}
 
                         <TextInput
                           label="Justificación"
@@ -347,10 +326,9 @@ const styles = StyleSheet.create({
   },
   radioRowFixed: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-evenly",
     alignItems: "center",
     flexWrap: "nowrap", // importante para evitar múltiples filas
-    gap: 0,
   },
 
   radioItemFixed: {
@@ -365,5 +343,18 @@ const styles = StyleSheet.create({
 
   radioLabelMobile: {
     fontSize: 12,
+  },
+  radioItemPressable: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    minWidth: 50,
+    maxWidth: 80,
+  },
+
+  radioLabelText: {
+    textAlign: "center",
+    flexShrink: 1,
   },
 });

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View } from "react-native";
-import { Button, Menu, Divider, HelperText } from "react-native-paper";
+import { View, StyleSheet } from "react-native";
+import {
+  Button,
+  Menu,
+  Divider,
+  HelperText,
+  useTheme,
+} from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Props {
   historial: { aula_id: number; nombre: string }[];
@@ -13,10 +20,9 @@ export const SelectMateria = ({ historial, onSeleccionar, error }: Props) => {
   const [selected, setSelected] = useState<{
     label: string;
     id: number | null;
-  }>({
-    label: "Elegir materia",
-    id: null,
-  });
+  }>({ label: "Elegir materia", id: null });
+
+  const { colors } = useTheme();
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -28,8 +34,7 @@ export const SelectMateria = ({ historial, onSeleccionar, error }: Props) => {
   };
 
   useEffect(() => {
-    // reiniciar selección si historial cambia
-    setSelected({ label: "Elegir materia", id: 0 });
+    setSelected({ label: "Elegir materia", id: null });
   }, [historial]);
 
   return (
@@ -41,16 +46,35 @@ export const SelectMateria = ({ historial, onSeleccionar, error }: Props) => {
           <Button
             mode={error ? "contained-tonal" : "outlined"}
             onPress={openMenu}
-            icon="chevron-down"
-            contentStyle={{
-              flexDirection: "row-reverse", // Ícono a la derecha
-              justifyContent: "space-between",
-            }}
-            style={{
-              borderColor: error ? "#B00020" : undefined,
-            }}
+            contentStyle={styles.buttonContent}
+            style={[styles.button, error && { borderColor: colors.error }]}
           >
-            {selected.label}
+            <View style={styles.labelWithIcon}>
+              <Ionicons
+                name="book-outline"
+                size={18}
+                color={error ? colors.error : colors.onSurface}
+                style={styles.iconLeft}
+              />
+              <View style={styles.labelTextWrapper}>
+                <Ionicons
+                  name={visible ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color={error ? colors.error : colors.onSurface}
+                  style={styles.iconRight}
+                />
+                <View>
+                  <Button
+                    mode="text"
+                    style={styles.innerLabel}
+                    disabled
+                    labelStyle={{ color: colors.onSurface }}
+                  >
+                    {selected.label}
+                  </Button>
+                </View>
+              </View>
+            </View>
           </Button>
         }
       >
@@ -58,6 +82,9 @@ export const SelectMateria = ({ historial, onSeleccionar, error }: Props) => {
           key="default-item"
           onPress={() => handleSelect("Elegir materia", null)}
           title="Elegir materia"
+          leadingIcon={() => (
+            <Ionicons name="refresh-outline" size={18} color={colors.primary} />
+          )}
         />
         <Divider />
         {historial.map((item) => (
@@ -65,6 +92,13 @@ export const SelectMateria = ({ historial, onSeleccionar, error }: Props) => {
             key={item.aula_id}
             onPress={() => handleSelect(item.nombre, item.aula_id)}
             title={item.nombre}
+            leadingIcon={() => (
+              <Ionicons
+                name="school-outline"
+                size={18}
+                color={colors.primary}
+              />
+            )}
           />
         ))}
       </Menu>
@@ -77,3 +111,31 @@ export const SelectMateria = ({ historial, onSeleccionar, error }: Props) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  buttonContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  button: {
+    borderWidth: 1,
+  },
+  labelWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  labelTextWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  iconLeft: {
+    marginRight: 8,
+  },
+  iconRight: {
+    marginRight: 4,
+  },
+  innerLabel: {
+    paddingHorizontal: 0,
+  },
+});
