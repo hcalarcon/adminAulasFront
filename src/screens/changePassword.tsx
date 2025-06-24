@@ -16,17 +16,10 @@ import { useNavigation } from "@react-navigation/native";
 import { saveUser, getFromStorage } from "../utils/storage";
 
 const ChangePassword = () => {
-  const { user, setUser, token } = useAuth();
+  const { setUser } = useAuth();
   const navigator = useNavigation();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [validToken, setValidToken] = useState<String | null>(token);
-
-  useEffect(() => {
-    if (validToken) return;
-    const tokenToStorage = getFromStorage("token");
-    setValidToken(tokenToStorage);
-  });
 
   const validationSchema = Yup.object().shape({
     newPassword: Yup.string()
@@ -48,13 +41,10 @@ const ChangePassword = () => {
     setLoading(true);
     setApiError(null);
     try {
-      const updatedUser = await updateUser(
-        {
-          password: values.newPassword,
-          cambiarContrasena: false,
-        },
-        token // No se manda token si es el primer inicio
-      );
+      const updatedUser = await updateUser({
+        password: values.newPassword,
+        cambiarContrasena: false,
+      });
 
       setUser({ ...updatedUser });
       await saveUser(updatedUser);
@@ -117,7 +107,7 @@ const ChangePassword = () => {
 
                   <Button
                     mode="contained"
-                    onPress={handleSubmit}
+                    onPress={() => handleSubmit}
                     style={styles.button}
                     disabled={loading}
                     loading={loading}

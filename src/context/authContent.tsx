@@ -1,7 +1,13 @@
 // AuthContext.tsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../types/UserType";
-import { getUser, getFromStorage, removeFromStorage } from "../utils/storage";
+import {
+  getUser,
+  getFromStorage,
+  removeFromStorage,
+  saveUser,
+} from "../utils/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface AuthContextType {
   user: User | null;
@@ -26,6 +32,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
 
+  const setUserAndPersist = async (newUser: User | null) => {
+    setUser(newUser);
+    if (newUser) {
+      await saveUser(newUser);
+    } else {
+      await removeFromStorage("user");
+    }
+  };
+
   useEffect(() => {
     const loadUser = async () => {
       const users = await getUser();
@@ -39,9 +54,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      await removeFromStorage("token");
-      await removeFromStorage("user");
-      await removeFromStorage("aulas");
+      // await removeFromStorage("token");
+      // await removeFromStorage("user");
+      // await removeFromStorage("aulas");
+      await AsyncStorage.clear();
     } catch (error) {
       console.log("error al borrar items", error);
     }
@@ -52,7 +68,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, loading, token, setToken, logout }}
+      value={{
+        user,
+        setUser: setUserAndPersist,
+        loading,
+        token,
+        setToken,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

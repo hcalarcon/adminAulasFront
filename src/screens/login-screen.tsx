@@ -17,6 +17,8 @@ import { saveToStorage, saveUser } from "../utils/storage";
 import { useAuth } from "../context/authContent";
 import { useAppData } from "../context/appDataContext";
 import { Button, useTheme } from "react-native-paper";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStack } from "../types/route";
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email("Email inválido").required("Requerido"),
@@ -24,7 +26,7 @@ const LoginSchema = Yup.object().shape({
 });
 
 export default function LoginScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStack>>();
   const { loading, setUser, setToken } = useAuth();
   const { loadData } = useAppData();
   const { colors } = useTheme();
@@ -42,7 +44,6 @@ export default function LoginScreen() {
       await saveUser(response.user);
       await saveToStorage("token", response.access_token);
       loadData(response.access_token);
-      navigation.navigate("Main");
     } catch (error: any) {
       setError("Credenciales inválidas");
     } finally {
@@ -107,7 +108,7 @@ export default function LoginScreen() {
                   )}
 
                   <Button
-                    onPress={handleSubmit}
+                    onPress={() => handleSubmit()}
                     style={{
                       backgroundColor: colors.backdrop,
                       paddingVertical: 8,

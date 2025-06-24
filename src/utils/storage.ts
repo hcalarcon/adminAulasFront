@@ -5,7 +5,11 @@ import {
   ClaseType,
   MateriasAlumnosType,
 } from "../types/AulaType";
-import { Alarcoin, AlarcoinAulaAlumnoType } from "../types/AlarcoinType";
+import {
+  Epetcoin,
+  TransaccionCoinAulaAlumnoType,
+  TransaccionCoinHistorialAulaType,
+} from "../types/EpetcoinType";
 import { AsistenciaAlumnoType } from "../types/AsistenciaType";
 
 export const saveUser = async (user: UsuarioType) => {
@@ -104,49 +108,6 @@ export const getAlumnosStorage = async (): Promise<Record<
   }
 };
 
-export const saveAlarcoinsProfe = async (data: MateriasAlumnosType[]) => {
-  try {
-    const json = JSON.stringify(data);
-    await saveToStorage("alarcoins_profe", json);
-  } catch (error) {
-    console.error("Error al guardar alarcoin en storage:", error);
-  }
-};
-
-export const getAlarcoinsProfe = async (): Promise<
-  MateriasAlumnosType[] | null
-> => {
-  try {
-    const json = await getFromStorage("alarcoins_profe");
-    return json ? JSON.parse(json) : null;
-  } catch (error) {
-    console.error("Error al leer alarcoins profe:", error);
-    return null;
-  }
-};
-
-// Para alumno
-export const saveAlarcoinsAlumno = async (data: AlarcoinAulaAlumnoType[]) => {
-  try {
-    const json = JSON.stringify(data);
-    await saveToStorage("alarcoins_alumno", json);
-  } catch (error) {
-    console.error("Error al guardar alarcoin del alumno:", error);
-  }
-};
-
-export const getAlarcoinsAlumno = async (): Promise<
-  AlarcoinAulaAlumnoType[] | null
-> => {
-  try {
-    const json = await getFromStorage("alarcoins_alumno");
-    return json ? JSON.parse(json) : null;
-  } catch (error) {
-    console.error("Error al leer alarcoin del alumno:", error);
-    return null;
-  }
-};
-
 export const saveAsistencias = async (data: AsistenciaAlumnoType[]) => {
   try {
     await AsyncStorage.setItem("asistencias", JSON.stringify(data));
@@ -186,6 +147,71 @@ export const getClasesStorage = async (
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error("Error leyendo clases:", error);
+    return null;
+  }
+};
+
+export const getEpetCoinToStorage = async (): Promise<Epetcoin | null> => {
+  try {
+    const data = await AsyncStorage.getItem("epetCoin");
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error("Error leyendo epetCoin:", error);
+    return null;
+  }
+};
+
+export const saveEpetCoin = async (epetCoin: Epetcoin | undefined) => {
+  try {
+    await AsyncStorage.setItem("epetCoin", JSON.stringify(epetCoin));
+  } catch (error) {
+    console.error("Error guardando epetCoin:", error);
+  }
+};
+
+export const saveTransaccionCoinProfe = async (
+  data: TransaccionCoinHistorialAulaType[]
+) => {
+  try {
+    const json = JSON.stringify(data);
+    await saveToStorage("transaccion_profe", json);
+  } catch (error) {
+    console.error("Error al guardar alarcoin en storage:", error);
+  }
+};
+
+export const getTransaccionCoinProfe = async (): Promise<
+  TransaccionCoinHistorialAulaType[] | null
+> => {
+  try {
+    const json = await getFromStorage("transaccion_profe");
+    return json ? JSON.parse(json) : null;
+  } catch (error) {
+    console.error("Error al leer alarcoins profe:", error);
+    return null;
+  }
+};
+
+// Para alumno
+export const saveTransaccionCoinAlumno = async (
+  data: TransaccionCoinAulaAlumnoType[]
+) => {
+  try {
+    const json = JSON.stringify(data);
+    await saveToStorage("transaccion_alumno", json);
+  } catch (error) {
+    console.error("Error al guardar alarcoin del alumno:", error);
+  }
+};
+
+export const getTransaccionCoinAlumno = async (): Promise<
+  TransaccionCoinAulaAlumnoType[] | null
+> => {
+  try {
+    const json = await getFromStorage("transaccion_alumno");
+    return json ? JSON.parse(json) : null;
+  } catch (error) {
+    console.error("Error al leer alarcoin del alumno:", error);
     return null;
   }
 };

@@ -8,6 +8,7 @@ export interface MateriasType {
   division: number;
   especialidad: string;
   cantidad_clases: number;
+  tipo: string;
 }
 
 export interface ClaseType {
@@ -16,6 +17,8 @@ export interface ClaseType {
   fecha: Date;
   aula_id: number;
   aula_nombre: string;
+  cuatrimestre: number;
+  grupo_id: number;
 }
 
 export interface MateriasAlumnosType {
@@ -26,6 +29,7 @@ export interface MateriasAlumnosType {
   division: number;
   especialidad: string;
   cantidad_clases: number;
+  tipo: string;
   alumnos: User[];
 }
 

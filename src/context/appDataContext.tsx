@@ -10,28 +10,37 @@ import { getalumnosAulas, getMisAulas } from "../api/aulas";
 import {
   getAlumnosStorage,
   getAulaStorage,
-  getFromStorage,
   saveAlumnos,
   saveAula,
-  saveAlarcoinsAlumno,
-  saveAlarcoinsProfe,
-  getAlarcoinsAlumno as getAlarcoinsAlumnoFromStorage,
-  getAlarcoinsProfe as getAlarcoinsProfeFromStorage,
+  saveEpetCoin,
+  getEpetCoinToStorage,
+  getTransaccionCoinProfe,
+  getTransaccionCoinAlumno,
+  saveTransaccionCoinProfe,
+  saveTransaccionCoinAlumno,
 } from "../utils/storage";
-import { Alarcoin, AlarcoinAulaAlumnoType } from "../types/AlarcoinType";
-import { getHistorialProfesor, getAlarcoinsAlumno } from "../api/alarcoin";
+import {
+  TransaccionCoinType,
+  TransaccionCoinAlumnoType,
+  Epetcoin,
+  TransaccionCoinCreateType,
+  TransaccionCoinAulaAlumnoType,
+  TransaccionCoinHistorialAulaType,
+} from "../types/EpetcoinType";
+import { getHistorialProfesor, getEpetcoin } from "../api/epetcoins";
 
 interface AppDataContextType {
   aulas: MateriasSimpleType[];
   alumnosMap: Record<number, AlumnoType>;
   isLoading: boolean;
   loadData: (token: string) => void;
-  alarcoins:
-    | Alarcoin[]
+  transaccioncoins:
+    | TransaccionCoinType[]
     | null
-    | MateriasAlumnosType[]
-    | AlarcoinAulaAlumnoType[];
-  loadAlarcoins: () => void;
+    | TransaccionCoinHistorialAulaType[]
+    | TransaccionCoinAlumnoType[];
+  loadAlarcoins: (forceRefresh?: boolean) => void;
+  epetCoin: Epetcoin | null | undefined;
   alarcoinsError: boolean;
 }
 
@@ -46,85 +55,128 @@ export const AppDataProvider = ({
   const [aulas, setAulas] = useState<MateriasSimpleType[]>([]);
   const [alumnosMap, setAlumnosMap] = useState<Record<number, AlumnoType>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [alarcoins, setAlarcoins] = useState<
-    Alarcoin[] | null | MateriasAlumnosType[] | AlarcoinAulaAlumnoType[]
+  const [transaccioncoins, setTransaccionCoins] = useState<
+    | TransaccionCoinType[]
+    | null
+    | TransaccionCoinHistorialAulaType[]
+    | TransaccionCoinAlumnoType[]
   >(null);
   const [alarcoinsError, setAlarcoinsError] = useState(false);
+  const [epetCoin, setEpetcoin] = useState<Epetcoin | false | undefined>(false);
 
-  const calcularCantidadAlarcoins = (alarcoins: any[]) => {
-    return alarcoins.reduce((acc, item) => {
+  //le pasamos una cantidad
+  const calcularCantidadEpetcoins = (epetCoin: TransaccionCoinCreateType[]) => {
+    return epetCoin.reduce((acc, item) => {
       return acc + (item.suma ? item.cantidad : -item.cantidad);
     }, 0);
   };
 
   //alarcoin si el usuario es profesor
-  const alarcoinProfe = async (data: MateriasAlumnosType[]) => {
-    const actualizarCantidadAlarcoins = (
-      alarcoinsData: MateriasAlumnosType[]
+  const transaccionCoinProfe = async (
+    data: TransaccionCoinHistorialAulaType[]
+  ) => {
+    const actualizarCantidadEpetcoins = (
+      alarcoinsData: TransaccionCoinHistorialAulaType[]
     ) => {
       const nuevoMap: Record<number, AlumnoType> = { ...alumnosMap };
 
       Object.keys(nuevoMap).forEach((id) => {
         nuevoMap[+id] = {
           ...nuevoMap[+id],
-          alarcoin: 0,
+          epetcoin: 0,
         };
       });
 
       alarcoinsData.forEach((aula) => {
         aula.alumnos.forEach((alumno) => {
-          const cantidad = calcularCantidadAlarcoins(alumno?.alarcoins);
+          const cantidad = calcularCantidadEpetcoins(alumno?.epetcoins);
           if (nuevoMap[alumno.id]) {
-            nuevoMap[alumno.id].alarcoin =
-              (nuevoMap[alumno.id].alarcoin || 0) + cantidad;
+            nuevoMap[alumno.id].epetcoin =
+              (nuevoMap[alumno.id].epetcoin || 0) + cantidad;
           }
         });
       });
 
       setAlumnosMap(nuevoMap);
     };
-    actualizarCantidadAlarcoins(data);
-    setAlarcoins(data);
-    await saveAlarcoinsProfe(data);
+    actualizarCantidadEpetcoins(data);
+    setTransaccionCoins(data);
+    await saveTransaccionCoinProfe(data);
   };
-  const alarcoinAlumno = async (data: AlarcoinAulaAlumnoType[]) => {
-    setAlarcoins(data);
-    await saveAlarcoinsAlumno(data);
+  const alarcoinAlumno = async (data: TransaccionCoinAulaAlumnoType[]) => {
+    setTransaccionCoins(data);
+    await saveTransaccionCoinAlumno(data);
   };
 
-  const loadAlarcoins = async () => {
-    let efectiveToken = token;
-    if (!token) {
-      efectiveToken = await getFromStorage("token");
+  //nuevo modelo epetcoin
+  const loadEpetcoin = async (): Promise<Epetcoin | boolean | undefined> => {
+    try {
+      const cachedCoin = await getEpetCoinToStorage();
+      if (cachedCoin) {
+        setEpetcoin(cachedCoin);
+        return true;
+      }
+      const data = await getEpetcoin(); // fetch /me
+      if (data?.coin) {
+        return false;
+      }
+      await saveEpetCoin(data);
+      setEpetcoin(data);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        setEpetcoin(false); // No hay moneda activa
+        return false;
+      }
+      console.error("Error verificando epetcoin:", error);
+      return false;
+    }
+  };
+
+  //cambiar a epetcoin
+  const loadAlarcoins = async (forceRefresh: boolean = false) => {
+    setAlarcoinsError(false);
+    const tieneMoneda = await loadEpetcoin(); // paso nuevo
+    if (!tieneMoneda) {
+      return false; // no sigue si no hay moneda
     }
 
-    setAlarcoinsError(false);
-
     try {
-      let data;
       if (user?.is_teacher) {
-        data = await getHistorialProfesor(efectiveToken); // llama a /historial
-        alarcoinProfe(data);
-      } else {
-        data = await getAlarcoinsAlumno(efectiveToken); // llama a /me
-        alarcoinAlumno(data);
-      }
-    } catch (error) {
-      console.error("Error cargando alarcoins:", error);
-
-      try {
-        if (user?.is_teacher) {
-          const local = await getAlarcoinsProfeFromStorage();
-          if (local) await alarcoinProfe(local);
+        if (forceRefresh) {
+          const data = await getHistorialProfesor(); // API
+          transaccionCoinProfe(data);
+          await saveTransaccionCoinProfe(data);
         } else {
-          const local = await getAlarcoinsAlumnoFromStorage();
-          if (local) await alarcoinAlumno(local);
+          const local = await getTransaccionCoinProfe();
+          if (local) {
+            transaccionCoinProfe(local);
+          } else {
+            const data = await getHistorialProfesor(); // API
+            transaccionCoinProfe(data);
+            await saveTransaccionCoinProfe(data);
+          }
         }
-      } catch (e) {
-        console.error("Error cargando alarcoins desde storage:", e);
+      } else {
+        // if (forceRefresh) {
+        //   const data = await getAlarcoinsAlumno(); // API
+        //   alarcoinAlumno(data);
+        //   await saveTransaccionCoinAlumno(data);
+        // } else {
+        //   const local = await getTransaccionCoinAlumno();
+        //   if (local) {
+        //     alarcoinAlumno(local);
+        //   } else {
+        //     const data = await getAlarcoinsAlumno(); // API
+        //     alarcoinAlumno(data);
+        //     await saveTransaccionCoinAlumno(data);
+        //   }
+        // }
       }
-
+    } catch (e) {
+      console.error("Error cargando alarcoins:", e);
       setAlarcoinsError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -177,6 +229,7 @@ export const AppDataProvider = ({
           especialidad: aula.especialidad,
           profesor_id: aula.profesor_id,
           cantidad_clases: aula.cantidad_clases,
+          tipo: aula.tipo,
           alumnoIds: aula.alumnos.map((alumno) => alumno.id),
         };
       });
@@ -214,9 +267,10 @@ export const AppDataProvider = ({
         alumnosMap,
         isLoading,
         loadData,
-        alarcoins,
+        transaccioncoins,
         loadAlarcoins,
         alarcoinsError,
+        epetCoin,
       }}
     >
       {children}

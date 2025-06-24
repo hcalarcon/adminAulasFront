@@ -11,7 +11,7 @@ import LoginScreen from "../screens/login-screen";
 import Profile from "../screens/profile";
 import { Pressable, View } from "react-native";
 import CustomDrawerContent from "./CustomDrawerContent";
-import Alarcoin from "../screens/alarcoin";
+import Alarcoin from "../screens/Epetcoin";
 import ChangePassword from "../screens/changePassword";
 import MateriasStack from "./materiasStack";
 import { DrawerParamList, RootStack } from "../types/route";

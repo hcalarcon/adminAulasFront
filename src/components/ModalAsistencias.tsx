@@ -42,6 +42,8 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
   const { alumnosMap, aulas } = useAppData();
   const [asistencias, setAsistencias] = useState<AsistenciaType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filtroAlumno, setFiltroAlumno] = useState("");
+
   const [asistenciasEditadas, setAsistenciasEditadas] = useState<
     AsistenciaEdit[]
   >([]);
@@ -52,8 +54,15 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
   const columns = width >= 1000 ? 3 : width >= 700 ? 2 : 1;
 
   const aula = aulas.find((a) => a.id === clase.aula_id);
+  // const alumnos =
+  //   aula?.alumnoIds.map((id) => alumnosMap[id]).filter(Boolean) ?? [];
   const alumnos =
-    aula?.alumnoIds.map((id) => alumnosMap[id]).filter(Boolean) ?? [];
+    aula?.alumnoIds
+      .map((id) => alumnosMap[id])
+      .filter(Boolean)
+      .filter((alumno) =>
+        clase.grupo_id ? alumno.grupo_id === clase.grupo_id : true
+      ) ?? [];
 
   useEffect(() => {
     if (!visible) return;
@@ -88,6 +97,14 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
     }
   }, [visible]);
 
+  const alumnosFiltrados = alumnos.filter((alumno) => {
+    const texto = filtroAlumno.toLowerCase();
+    return (
+      alumno.nombre.toLowerCase().includes(texto) ||
+      alumno.apellido.toLowerCase().includes(texto)
+    );
+  });
+
   const handleChange = (alumno_id: number, presente: number) => {
     setAsistenciasEditadas((prev) => {
       const existente = prev.find((a) => a.alumno_id === alumno_id);
@@ -118,6 +135,7 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
   };
 
   const handleGuardar = async () => {
+    setIsLoading(true);
     try {
       if (asistenciasEditadas.length === 0) {
         Alert.alert("Sin cambios", "No se detectaron asistencias editadas.");
@@ -136,7 +154,6 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
         };
       });
 
-      console.log("Payload a enviar:", payload);
       await setClaseAsistencia(clase.id, token, payload);
 
       Alert.alert(
@@ -148,6 +165,8 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
     } catch (error: any) {
       console.error("Error al guardar asistencias:", error);
       Alert.alert("Error", error.message || "Ocurrió un error al guardar.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -168,109 +187,122 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
         {isLoading ? (
           <ActivityIndicator style={{ marginVertical: 20 }} />
         ) : (
-          <ScrollView contentContainerStyle={styles.scroll}>
-            <View style={[styles.grid, { gap: 12 }]}>
-              {alumnos.map((alumno) => {
-                const asistenciaExistente = asistencias.find(
-                  (a) => a.alumno_id === alumno.id
-                );
-                const asistenciaEditada = asistenciasEditadas.find(
-                  (a) => a.alumno_id === alumno.id
-                );
-                const valuePresente =
-                  asistenciaEditada?.presente?.toString() ??
-                  asistenciaExistente?.presente?.toString() ??
-                  "";
+          <>
+            <TextInput
+              label="Buscar alumno"
+              mode="outlined"
+              value={filtroAlumno}
+              onChangeText={setFiltroAlumno}
+              style={{ marginBottom: 10 }}
+              placeholder="Nombre o apellido"
+            />
 
-                const valueJustificado =
-                  asistenciaEditada?.justificado ??
-                  asistenciaExistente?.justificado ??
-                  "";
+            <ScrollView contentContainerStyle={styles.scroll}>
+              <View style={[styles.grid, { gap: 12 }]}>
+                {alumnosFiltrados.map((alumno) => {
+                  const asistenciaExistente = asistencias.find(
+                    (a) => a.alumno_id === alumno.id
+                  );
+                  const asistenciaEditada = asistenciasEditadas.find(
+                    (a) => a.alumno_id === alumno.id
+                  );
+                  const valuePresente =
+                    asistenciaEditada?.presente?.toString() ??
+                    asistenciaExistente?.presente?.toString() ??
+                    "";
 
-                return (
-                  <View
-                    key={alumno.id}
-                    style={[
-                      styles.cardWrapper,
-                      { width: `${100 / columns - 4}%` },
-                    ]}
-                  >
-                    <Card mode="outlined" style={styles.alumnoCard}>
-                      <Card.Content style={{ gap: 4, padding: 5 }}>
-                        <Text style={styles.nombreAlumno}>
-                          {alumno.nombre} {alumno.apellido}
-                        </Text>
+                  const valueJustificado =
+                    asistenciaEditada?.justificado ??
+                    asistenciaExistente?.justificado ??
+                    "";
 
-                        <RadioButton.Group
-                          onValueChange={(value) =>
-                            handleChange(alumno.id, parseInt(value))
-                          }
-                          value={valuePresente}
-                        >
-                          <View style={styles.radioRowFixed}>
-                            {[
-                              {
-                                label: isMobile ? "P" : "Presente",
-                                value: "1",
-                              },
-                              { label: isMobile ? "A" : "Ausente", value: "2" },
-                              { label: isMobile ? "T" : "Tarde", value: "3" },
-                              {
-                                label: "NC",
-                                value: "0",
-                              },
-                            ].map((item) => (
-                              <Pressable
-                                key={item.value}
-                                style={styles.radioItemPressable}
-                                onPress={() =>
-                                  handleChange(alumno.id, parseInt(item.value))
-                                }
-                              >
-                                <RadioButton
-                                  value={item.value}
-                                  status={
-                                    valuePresente === item.value
-                                      ? "checked"
-                                      : "unchecked"
-                                  }
+                  return (
+                    <View
+                      key={alumno.id}
+                      style={[
+                        styles.cardWrapper,
+                        { width: `${100 / columns - 4}%` },
+                      ]}
+                    >
+                      <Card mode="outlined" style={styles.alumnoCard}>
+                        <Card.Content style={{ gap: 4, padding: 5 }}>
+                          <Text style={styles.nombreAlumno}>
+                            {alumno.nombre} {alumno.apellido}
+                          </Text>
+
+                          <RadioButton.Group
+                            onValueChange={(value) =>
+                              handleChange(alumno.id, parseInt(value))
+                            }
+                            value={valuePresente}
+                          >
+                            <View style={styles.radioRowFixed}>
+                              {[
+                                {
+                                  label: isMobile ? "P" : "Presente",
+                                  value: "1",
+                                },
+                                {
+                                  label: isMobile ? "A" : "Ausente",
+                                  value: "2",
+                                },
+                                { label: isMobile ? "T" : "Tarde", value: "3" },
+                              ].map((item) => (
+                                <Pressable
+                                  key={item.value}
+                                  style={styles.radioItemPressable}
                                   onPress={() =>
                                     handleChange(
                                       alumno.id,
                                       parseInt(item.value)
                                     )
                                   }
-                                />
-                                <Text
-                                  style={[
-                                    isMobile
-                                      ? styles.radioLabelMobile
-                                      : styles.radioLabel,
-                                    styles.radioLabelText,
-                                  ]}
                                 >
-                                  {item.label}
-                                </Text>
-                              </Pressable>
-                            ))}
-                          </View>
-                        </RadioButton.Group>
+                                  <RadioButton
+                                    value={item.value}
+                                    status={
+                                      valuePresente === item.value
+                                        ? "checked"
+                                        : "unchecked"
+                                    }
+                                    onPress={() =>
+                                      handleChange(
+                                        alumno.id,
+                                        parseInt(item.value)
+                                      )
+                                    }
+                                  />
+                                  <Text
+                                    style={[
+                                      isMobile
+                                        ? styles.radioLabelMobile
+                                        : styles.radioLabel,
+                                      styles.radioLabelText,
+                                    ]}
+                                  >
+                                    {item.label}
+                                  </Text>
+                                </Pressable>
+                              ))}
+                            </View>
+                          </RadioButton.Group>
 
-                        <TextInput
-                          label="Justificación"
-                          mode="outlined"
-                          value={valueJustificado}
-                          onChangeText={(text) =>
-                            handleJustificacionChange(alumno.id, text)
-                          }
-                        />
-                      </Card.Content>
-                    </Card>
-                  </View>
-                );
-              })}
-            </View>
-          </ScrollView>
+                          <TextInput
+                            label="Justificación"
+                            mode="outlined"
+                            value={valueJustificado}
+                            onChangeText={(text) =>
+                              handleJustificacionChange(alumno.id, text)
+                            }
+                          />
+                        </Card.Content>
+                      </Card>
+                    </View>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </>
         )}
 
         <View style={styles.buttonRow}>
@@ -278,7 +310,7 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
             Cancelar
           </Button>
           <Button mode="contained" onPress={handleGuardar}>
-            Guardar
+            {isLoading ? "guardando" : "Guardar"}
           </Button>
         </View>
       </Modal>

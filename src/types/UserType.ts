@@ -5,5 +5,16 @@ export interface User {
   email: string;
   is_teacher: boolean;
   cambiarContrasena: boolean;
-  alarcoin?: number;
+  grupo_id: number;
+  epetcoin?: number;
+}
+
+export interface UserUpdateType {
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+  newPassword?: string;
+  cambiarContrasena?: boolean;
+  confirmPassword?: string;
+  password?: string;
 }

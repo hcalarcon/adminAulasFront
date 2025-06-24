@@ -23,6 +23,13 @@ export default function DetallesMaterias() {
   const [isLoading, setIsLoading] = useState(true);
   const [clases, setClases] = useState<ClaseType[]>([]);
   const [error, setError] = useState(false);
+  const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(
+    null
+  );
+  const [cuatrimestreSeleccionado, setCuatrimestreSeleccionado] = useState<
+    number | null
+  >(null);
+
   const { colors } = useTheme();
 
   const getClases = async (forzarBackend = false) => {
@@ -52,9 +59,26 @@ export default function DetallesMaterias() {
     }
   };
 
-  const clasesFiltradas = user?.is_teacher
+  // const clasesFiltradas = user?.is_teacher
+  //   ? clases
+  //   : clases.filter((clase) => !/^clases\s+\d+/i.test(clase.tema));
+
+  const clasesVisibles = user?.is_teacher
     ? clases
     : clases.filter((clase) => !/^clases\s+\d+/i.test(clase.tema));
+
+  const clasesFiltradas = clasesVisibles.filter((clase) => {
+    if (grupoSeleccionado !== null && clase.grupo_id !== grupoSeleccionado) {
+      return false;
+    }
+    if (
+      cuatrimestreSeleccionado !== null &&
+      clase.cuatrimestre !== cuatrimestreSeleccionado
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   const numColumns = width >= 1024 ? 3 : width >= 600 ? 2 : 1;
   const isSmallDevice = width < 600;
@@ -203,6 +227,84 @@ export default function DetallesMaterias() {
           </View>
         ) : (
           <>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 8,
+                marginBottom: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              {!user?.is_teacher ? (
+                <Text> </Text>
+              ) : (
+                materia.tipo === "taller" && (
+                  <>
+                    <Button
+                      mode={
+                        grupoSeleccionado === null ? "contained" : "outlined"
+                      }
+                      onPress={() => setGrupoSeleccionado(null)}
+                    >
+                      Todos los grupos
+                    </Button>
+                    {[1, 2].map((id) => (
+                      <Button
+                        key={id}
+                        mode={
+                          grupoSeleccionado === id ? "contained" : "outlined"
+                        }
+                        onPress={() => setGrupoSeleccionado(id)}
+                      >
+                        G {id}
+                      </Button>
+                    ))}
+                  </>
+                )
+              )}
+              <Button
+                mode={
+                  cuatrimestreSeleccionado === null ? "contained" : "outlined"
+                }
+                onPress={() => setCuatrimestreSeleccionado(null)}
+              >
+                Todos los cuatris
+              </Button>
+              {[1, 2].map((c) => (
+                <Button
+                  key={c}
+                  mode={
+                    cuatrimestreSeleccionado === c ? "contained" : "outlined"
+                  }
+                  onPress={() => setCuatrimestreSeleccionado(c)}
+                >
+                  C {c}
+                </Button>
+              ))}
+            </View>
+
+            {/* <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
+              <Button
+                mode={
+                  cuatrimestreSeleccionado === null ? "contained" : "outlined"
+                }
+                onPress={() => setCuatrimestreSeleccionado(null)}
+              >
+                Todos los cuatris
+              </Button>
+              {[1, 2].map((c) => (
+                <Button
+                  key={c}
+                  mode={
+                    cuatrimestreSeleccionado === c ? "contained" : "outlined"
+                  }
+                  onPress={() => setCuatrimestreSeleccionado(c)}
+                >
+                  Cuatri {c}
+                </Button>
+              ))}
+            </View> */}
+
             <ScrollView
               contentContainerStyle={{
                 paddingBottom: user?.is_teacher ? 90 : 32,
@@ -277,22 +379,6 @@ export default function DetallesMaterias() {
                 ))
               )}
             </ScrollView>
-            {user?.is_teacher && (
-              <View>
-                <Button
-                  icon={({ color, size }) => (
-                    <Ionicons name="add-circle" color={color} size={size} />
-                  )}
-                  mode="contained"
-                  onPress={handleAddClass}
-                  contentStyle={styles.addButtonContent}
-                  style={styles.addButton}
-                  labelStyle={{ fontWeight: "bold", fontSize: 16 }}
-                >
-                  Agregar Clase
-                </Button>
-              </View>
-            )}
           </>
         )}
       </View>

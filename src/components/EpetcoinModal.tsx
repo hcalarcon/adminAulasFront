@@ -16,21 +16,19 @@ import {
 import { User } from "../types/UserType";
 import { useAppData } from "../context/appDataContext";
 import {
-  Alarcoin,
-  AlarcoinAulaAlumnoType,
-  AlarcoinCreateType,
-  AlarcoinHistorialType,
-} from "../types/AlarcoinType";
+  TransaccionCoinAulaAlumnoType,
+  TransaccionCoinCreateType,
+  TransaccionCoinHistorialType,
+} from "../types/EpetcoinType";
 import { SelectMateria } from "./DropDonw";
-import { crearAlarcoin } from "../api/alarcoin";
-import { useAuth } from "../context/authContent";
+import { crearTransaccion } from "../api/epetcoins";
 
 interface Props {
   visible: boolean;
   onDismiss: () => void;
   user: User | null;
   is_teacher: boolean | undefined;
-  selectedAula?: AlarcoinAulaAlumnoType;
+  selectedAula?: TransaccionCoinAulaAlumnoType;
 }
 
 const AlarcoinModal = ({
@@ -51,8 +49,7 @@ const AlarcoinModal = ({
   );
   const [visibleSnack, setVisibleSnack] = useState(false);
   const [mensaje, setMensaje] = useState("");
-  const { alarcoins, loadAlarcoins } = useAppData();
-  const { token } = useAuth();
+  const { transaccioncoins, loadAlarcoins, epetCoin } = useAppData();
   const [loading, setLoading] = useState(false);
 
   const historialPorAula = useMemo(() => {
@@ -60,15 +57,19 @@ const AlarcoinModal = ({
 
     if (is_teacher) {
       // PROFESOR: busca en todas las aulas
-      return alarcoins
+      return (transaccioncoins ?? [])
         .map((aula) => {
-          const alumno = aula.alumnos.find((a) => a.id === user.id);
-          if (alumno) {
-            return {
-              aula_id: aula.aula_id,
-              nombre: aula.nombre,
-              alarcoins: alumno.alarcoins || [],
-            };
+          if ("alumnos" in aula && Array.isArray(aula.alumnos)) {
+            const alumno = aula.alumnos.find(
+              (a: { id: number }) => a.id === user.id
+            );
+            if (alumno) {
+              return {
+                aula_id: aula.aula_id,
+                nombre: aula.nombre,
+                epetcoins: alumno.epetcoins || [],
+              };
+            }
           }
           return null;
         })
@@ -78,7 +79,7 @@ const AlarcoinModal = ({
           ): aula is {
             aula_id: number;
             nombre: string;
-            alarcoins: AlarcoinHistorialType[];
+            epetcoins: TransaccionCoinHistorialType[];
           } => aula !== null
         );
     } else if (selectedAula) {
@@ -86,13 +87,13 @@ const AlarcoinModal = ({
         {
           aula_id: selectedAula.id,
           nombre: selectedAula.nombre,
-          alarcoins: selectedAula.alarcoins,
+          epetcoins: selectedAula.epetcoins,
         },
       ];
     }
 
     return [];
-  }, [alarcoins, user, is_teacher, selectedAula]);
+  }, [transaccioncoins, user, is_teacher, selectedAula]);
 
   const handleGuardar = async () => {
     if (!materiaSeleccionada || materiaSeleccionada === 0) {
@@ -108,21 +109,22 @@ const AlarcoinModal = ({
 
     setLoading(true);
 
-    const alarcoin: AlarcoinCreateType = {
+    const transaccionCoin: TransaccionCoinCreateType = {
       aula_id: materiaSeleccionada,
       alumno_id: user.id,
       detalle: concepto,
       suma: Number(tipo),
       cantidad: Number(cantidad),
+      moneda_id: epetCoin?.id,
     };
     try {
-      await crearAlarcoin(token, alarcoin);
+      await crearTransaccion(transaccionCoin);
       setCantidad("0");
       setConcepto("");
-      setTipo("true");
+      setTipo("1");
       setMateriaSeleccionada(null);
       onDismiss();
-      loadAlarcoins();
+      loadAlarcoins(true);
       setMensaje("Alarcoin guardado correctamente.");
       setVisibleSnack(true);
     } catch (error) {
@@ -187,12 +189,6 @@ const AlarcoinModal = ({
               maxWidth: "100%",
               borderRadius: 12,
               overflow: "hidden",
-            }}
-            contentStyle={{
-              flexDirection: "row",
-              flexWrap: "nowrap",
-              minWidth: 0,
-              maxWidth: "100%",
             }}
           />
         </View>
@@ -278,20 +274,19 @@ const AlarcoinModal = ({
         {tab === "historial" && (
           <View style={{ marginTop: 12 }}>
             <Text variant="titleMedium" style={{ marginBottom: 8 }}>
-              Historial de Alarcoins
+              Historial de Epetcoins
             </Text>
-            {historialPorAula.every((item) => item.alarcoins.length === 0) ? (
+            {historialPorAula.every((item) => item.epetcoins.length === 0) ? (
               <Text style={{ marginTop: 8 }}>No hay historial aún</Text>
             ) : (
               <ScrollView>
                 {historialPorAula
-                  .filter((aula) => aula.alarcoins.length > 0)
+                  .filter((aula) => aula.epetcoins.length > 0)
                   .map((aula) => {
                     // Calcular el total de alarcoins para el aula
-                    const totalAlarcoins = aula.alarcoins.reduce(
+                    const totalAlarcoins = aula.epetcoins.reduce(
                       (acc, entry) =>
-                        acc +
-                        (entry.suma > 0 ? entry.cantidad : -entry.cantidad),
+                        acc + (entry.suma ? entry.cantidad : -entry.cantidad),
                       0
                     );
                     return (
@@ -319,7 +314,7 @@ const AlarcoinModal = ({
                           }
                         />
                         <Card.Content>
-                          {aula.alarcoins.map((entry) => (
+                          {aula.epetcoins.map((entry) => (
                             <View key={entry.id}>
                               <View
                                 key={entry.id}
@@ -335,10 +330,10 @@ const AlarcoinModal = ({
                                 <Text>{entry.detalle}</Text>
                                 <Text
                                   style={{
-                                    color: entry.suma > 0 ? "green" : "red",
+                                    color: entry.suma ? "green" : "red",
                                   }}
                                 >
-                                  {entry.suma > 0
+                                  {entry.suma
                                     ? `+${entry.cantidad}`
                                     : `-${entry.cantidad}`}
                                 </Text>

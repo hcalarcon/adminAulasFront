@@ -18,16 +18,20 @@ import {
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../context/authContent";
+import { Ionicons } from "@expo/vector-icons";
+import { UserUpdateType } from "../types/UserType";
+import { updateUser } from "../api/updateUser";
+import { useAppData } from "../context/appDataContext";
 
-import { Ionicons, Feather } from "@expo/vector-icons";
-
-const validationSchema = Yup.object({
-  name: Yup.string().required("El nombre es obligatorio"),
-  email: Yup.string()
-    .email("Correo inválido")
-    .required("El correo es obligatorio"),
-  currentPassword: Yup.string().required("Campo obligatorio"),
-  newPassword: Yup.string().min(6, "Debe tener al menos 6 caracteres"),
+const validationSchema = Yup.object().shape({
+  nombre: Yup.string().required("El nombre es obligatorio"),
+  apellido: Yup.string().required("El apellido es obligatorio"),
+  email: Yup.string().email("Email inválido").required("Email requerido"),
+  newPassword: Yup.string().min(6, "Mínimo 6 caracteres"),
+  confirmPassword: Yup.string().oneOf(
+    [Yup.ref("newPassword"), ""],
+    "Las contraseñas no coinciden"
+  ),
 });
 
 const Profile = () => {
@@ -35,12 +39,12 @@ const Profile = () => {
   const [editable, setEditable] = useState(false);
   const [nombre, setNombre] = useState(user?.nombre);
   const [apellido, setApellido] = useState(user?.apellido);
-  const [email] = useState(user?.email);
+  const [email, setEmail] = useState(user?.email);
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
-
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { setUser } = useAuth();
 
   const handleEdit = () => setEditable(true);
 
@@ -50,12 +54,27 @@ const Profile = () => {
     setConfirmPassword("");
   };
 
-  const handleSave = () => {
-    if (password && password !== confirmPassword) {
-      Alert.alert("Error", "Las contraseñas no coinciden.");
-      return;
+  const handleSave = async (values: UserUpdateType) => {
+    const { newPassword, confirmPassword, ...rest } = values;
+
+    if (newPassword) {
+      if (newPassword !== confirmPassword) {
+        Alert.alert("Error", "Las contraseñas no coinciden.");
+        return;
+      }
     }
-    setEditable(false);
+
+    try {
+      const updatedUser = await updateUser({
+        ...rest,
+        password: newPassword || undefined,
+      });
+
+      setUser(updatedUser);
+      setEditable(false);
+    } catch (error) {
+      Alert.alert("Error", (error as Error).message);
+    }
   };
 
   return (
@@ -92,7 +111,7 @@ const Profile = () => {
           <Card.Content>
             <Formik
               initialValues={{
-                name: nombre || "",
+                nombre: nombre || "",
                 apellido: apellido || "",
                 email: email || "",
                 newPassword: "",
@@ -100,7 +119,7 @@ const Profile = () => {
               }}
               validationSchema={validationSchema}
               onSubmit={(values) => {
-                handleSave();
+                handleSave(values);
               }}
               enableReinitialize
             >
@@ -127,7 +146,7 @@ const Profile = () => {
                           : colors.surfaceDisabled,
                       },
                     ]}
-                    error={!!errors.name && touched.name}
+                    error={!!errors.nombre && touched.nombre}
                     onBlur={handleBlur("name")}
                     left={
                       <TextInput.Icon
@@ -141,9 +160,9 @@ const Profile = () => {
                       />
                     }
                   />
-                  {editable && errors.name && touched.name && (
+                  {editable && errors.nombre && touched.nombre && (
                     <Text style={[styles.error, { color: colors.error }]}>
-                      {errors.name}
+                      {errors.nombre}
                     </Text>
                   )}
 
@@ -184,12 +203,15 @@ const Profile = () => {
                   <TextInput
                     label="Email"
                     value={email}
-                    editable={false}
+                    editable={editable}
+                    onChangeText={setEmail}
                     mode="flat"
                     style={[
                       styles.input,
                       { backgroundColor: colors.surfaceDisabled },
                     ]}
+                    error={!!errors.email && touched.email}
+                    onBlur={handleBlur("email")}
                     left={
                       <TextInput.Icon
                         icon={({ color, size }) => (
@@ -202,17 +224,24 @@ const Profile = () => {
                       />
                     }
                   />
+                  {editable && errors.email && touched.email && (
+                    <Text style={[styles.error, { color: colors.error }]}>
+                      {errors.email}
+                    </Text>
+                  )}
 
                   {editable && (
                     <>
                       <TextInput
                         label="Nueva clave"
                         secureTextEntry
-                        textContentType="oneTimeCode"
                         value={password}
                         onChangeText={setPassword}
                         placeholder="********"
                         mode="flat"
+                        autoComplete="off"
+                        textContentType="none"
+                        importantForAutofill="no"
                         style={[
                           styles.input,
                           { backgroundColor: colors.background },

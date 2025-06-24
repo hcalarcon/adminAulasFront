@@ -1,18 +1,10 @@
 // services/userService.ts
-import { User } from "../types/UserType";
+import { User, UserUpdateType } from "../types/UserType";
+import { getFromStorage } from "../utils/storage";
 import { urlBase } from "../utils/url";
 
-export interface UpdateUserData {
-  password?: string;
-  name?: string;
-  email?: string;
-  cambiarContrasena: boolean;
-}
-
-export async function updateUser(
-  data: UpdateUserData,
-  token: string | null
-): Promise<User> {
+export async function updateUser(data: UserUpdateType): Promise<User> {
+  const token = await getFromStorage("token");
   const response = await fetch(`${urlBase}/users/me`, {
     method: "PUT",
     headers: {

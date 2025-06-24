@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { MateriasType as Aula } from "../types/AulaType"; // tus tipos
 import { saveAula } from "../utils/storage";
 import { useAuth } from "./authContent";
-import { misMaterias } from "../api/misMaterias";
+import { misMaterias } from "../api/misAulas";
 
 interface AulasContextType {
   aulas: Aula[];

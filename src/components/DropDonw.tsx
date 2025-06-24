@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import {
   Button,
   Menu,
@@ -63,16 +63,10 @@ export const SelectMateria = ({ historial, onSeleccionar, error }: Props) => {
                   color={error ? colors.error : colors.onSurface}
                   style={styles.iconRight}
                 />
-                <View>
-                  <Button
-                    mode="text"
-                    style={styles.innerLabel}
-                    disabled
-                    labelStyle={{ color: colors.onSurface }}
-                  >
-                    {selected.label}
-                  </Button>
-                </View>
+
+                <Text style={[styles.innerLabel, { color: colors.onSurface }]}>
+                  {selected.label}
+                </Text>
               </View>
             </View>
           </Button>

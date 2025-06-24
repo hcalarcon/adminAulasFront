@@ -10,10 +10,12 @@ import { CommonActions, useNavigation } from "@react-navigation/native";
 import { useThemeContext } from "../context/themeContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStack } from "../types/route";
+import { useAppData } from "../context/appDataContext";
 
 export default function CustomDrawerContent(props: any) {
   const { isDarkMode, toggleTheme } = useThemeContext();
   const { user, loading, logout } = useAuth();
+  const { epetCoin } = useAppData();
 
   const drawerItems = [
     {
@@ -33,11 +35,11 @@ export default function CustomDrawerContent(props: any) {
     },
     {
       icon: "logo-bitcoin",
-      label: user
-        ? user.is_teacher
-          ? "Alarcoins"
-          : "Mis Alarcoins"
-        : "Alarcoins",
+      label: user?.is_teacher
+        ? epetCoin?.nombre
+          ? epetCoin?.nombre
+          : "epetCoins"
+        : "Mis epetCoins",
       screen: "Alarcoin",
     },
   ];
@@ -64,22 +66,21 @@ export default function CustomDrawerContent(props: any) {
 
         {/* Cerrar sesión */}
         <Drawer.Section style={styles.bottom}>
-          <DrawerItem
-            icon={({ color, size }) => (
-              <Ionicons
-                name={isDarkMode ? "moon" : "sunny"}
-                color={color}
-                size={size}
-              />
-            )}
-            label={isDarkMode ? "Modo oscuro" : "Modo claro"}
-            onPress={toggleTheme}
-            style={styles.themeItem}
-            // agregamos el Switch como accesorio a la derecha
-            right={(): React.ReactNode => (
-              <Switch value={isDarkMode} onValueChange={toggleTheme} />
-            )}
-          />
+          <View style={[styles.switchRow, styles.themeItem]}>
+            <DrawerItem
+              icon={({ color, size }) => (
+                <Ionicons
+                  name={isDarkMode ? "moon" : "sunny"}
+                  color={color}
+                  size={size}
+                />
+              )}
+              label={isDarkMode ? "Modo oscuro" : "Modo claro"}
+              onPress={toggleTheme}
+              style={{ flex: 1 }}
+            />
+            <Switch value={isDarkMode} onValueChange={toggleTheme} />
+          </View>
 
           <DrawerItem
             icon={({ color, size }) => (
@@ -88,12 +89,12 @@ export default function CustomDrawerContent(props: any) {
             label="Cerrar sesión"
             onPress={() => {
               logout();
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: "Login" }],
-                })
-              );
+              // navigation.dispatch(
+              //   CommonActions.reset({
+              //     index: 0,
+              //     routes: [{ name: "Login" }],
+              //   })
+              // );
             }}
           />
         </Drawer.Section>

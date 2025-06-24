@@ -6,7 +6,6 @@ export async function setClaseAsistencia(
   token: string | null,
   asistencias: Omit<AsistenciaType, "id">[]
 ): Promise<void> {
-  console.log(asistencias);
   const response = await fetch(`${urlBase}/asistencias/masiva/${clase_id}`, {
     method: "POST",
     headers: {

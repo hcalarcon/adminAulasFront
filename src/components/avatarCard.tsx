@@ -6,9 +6,10 @@ import { getInitials } from "../utils/initials";
 
 interface Props {
   isalarcoins: boolean;
-  alarcoins: number;
+  alarcoins: number | undefined;
   user: User;
   loading: boolean;
+  desdeProfe?: boolean;
 }
 
 const AvatarCard = ({
@@ -16,9 +17,9 @@ const AvatarCard = ({
   isalarcoins = false,
   user,
   loading,
+  desdeProfe,
 }: Props) => {
   const { colors } = useTheme();
-
   return (
     <View
       style={[
@@ -51,7 +52,9 @@ const AvatarCard = ({
 
       {isalarcoins && (
         <View>
-          <Text variant="bodyMedium">Tus Alarcoins</Text>
+          <Text variant="bodyMedium">
+            {desdeProfe ? "epetCoins" : "Tus epetCoins"}
+          </Text>
           <Text variant="bodyMedium" style={{ textAlign: "center" }}>
             {alarcoins}
           </Text>
