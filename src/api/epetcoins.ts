@@ -1,5 +1,6 @@
 import {
   Epetcoin,
+  TransaccionCoinAulaAlumnoType,
   TransaccionCoinCreateType,
   TransaccionCoinHistorialAulaType,
   TransaccionCoinType,
@@ -173,7 +174,7 @@ export async function crearTransaccion(
 }
 
 export async function getHistorialAlumno(): Promise<
-  TransaccionCoinHistorialAulaType[]
+  TransaccionCoinAulaAlumnoType[]
 > {
   const token = await getFromStorage("token");
   const response = await fetch(`${urlBase}/epetcoins/historial`, {

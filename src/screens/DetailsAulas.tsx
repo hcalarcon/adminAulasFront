@@ -7,11 +7,10 @@ import { useEffect, useState } from "react";
 import { clasesMateria } from "../api/clasesMateria";
 import { useAuth } from "../context/authContent";
 import { ClaseType } from "../types/AulaType";
-import ClaseCard from "../components/claseCard";
+import ClaseCard from "../components/ClaseCard";
 import { useWindowDimensions } from "react-native";
 import { getClasesStorage, getFromStorage, saveClases } from "../utils/storage";
 import { Layout } from "../layout/layout";
-import LoadError from "../components/LoadError";
 type Props = RouteProp<MateriasStackParamList, "DetalleMateria">;
 
 export default function DetallesMaterias() {

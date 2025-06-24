@@ -1,12 +1,11 @@
-// CustomDrawerContent.tsx
 import React from "react";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { Drawer, Switch } from "react-native-paper";
 import { View, StyleSheet } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import AvatarCard from "../components/avatarCard";
+import AvatarCard from "../components/AvatarCard";
 import { useAuth } from "../context/authContent";
-import { CommonActions, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { useThemeContext } from "../context/themeContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStack } from "../types/route";

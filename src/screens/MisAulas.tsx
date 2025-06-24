@@ -2,7 +2,7 @@ import { Layout } from "../layout/layout";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text } from "react-native-paper";
 import { useAuth } from "../context/authContent";
-import MateriasCard from "../components/materiaCard";
+import MateriasCard from "../components/MateriaCard";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStack } from "../types/route";

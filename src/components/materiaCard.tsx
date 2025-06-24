@@ -8,6 +8,7 @@ type Props = {
   porcentaje?: number;
   is_alumno: boolean;
   alarcoin?: number;
+  coin?: string;
 };
 
 export default function MateriasCard({
@@ -16,9 +17,9 @@ export default function MateriasCard({
   porcentaje = 0,
   is_alumno,
   alarcoin,
+  coin,
 }: Props) {
   const { colors } = useTheme();
-  console.log(porcentaje);
   const getColorFromPorcentaje = (porcentaje: number) => {
     if (porcentaje === 0) return ["transparent", "transparent"];
     if (porcentaje < 60) return [colors.background, colors.asistenciaMala]; // rojo
@@ -57,7 +58,7 @@ export default function MateriasCard({
               {is_alumno && alarcoin == null
                 ? "Asistencias"
                 : alarcoin != null
-                ? "Alarcoins"
+                ? coin
                 : " Clases dictadas"}
             </Text>
             <Text variant="titleMedium" style={styles.classCount}>

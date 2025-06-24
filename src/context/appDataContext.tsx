@@ -27,7 +27,11 @@ import {
   TransaccionCoinAulaAlumnoType,
   TransaccionCoinHistorialAulaType,
 } from "../types/EpetcoinType";
-import { getHistorialProfesor, getEpetcoin } from "../api/epetcoins";
+import {
+  getHistorialProfesor,
+  getEpetcoin,
+  getHistorialAlumno,
+} from "../api/epetcoins";
 
 interface AppDataContextType {
   aulas: MateriasSimpleType[];
@@ -103,7 +107,9 @@ export const AppDataProvider = ({
     setTransaccionCoins(data);
     await saveTransaccionCoinProfe(data);
   };
-  const alarcoinAlumno = async (data: TransaccionCoinAulaAlumnoType[]) => {
+  const transaccionCoinAlumno = async (
+    data: TransaccionCoinAulaAlumnoType[]
+  ) => {
     setTransaccionCoins(data);
     await saveTransaccionCoinAlumno(data);
   };
@@ -135,13 +141,13 @@ export const AppDataProvider = ({
   //cambiar a epetcoin
   const loadAlarcoins = async (forceRefresh: boolean = false) => {
     setAlarcoinsError(false);
-    const tieneMoneda = await loadEpetcoin(); // paso nuevo
-    if (!tieneMoneda) {
-      return false; // no sigue si no hay moneda
-    }
 
     try {
       if (user?.is_teacher) {
+        const tieneMoneda = await loadEpetcoin(); // paso nuevo
+        if (!tieneMoneda) {
+          return false; // no sigue si no hay moneda
+        }
         if (forceRefresh) {
           const data = await getHistorialProfesor(); // API
           transaccionCoinProfe(data);
@@ -157,20 +163,20 @@ export const AppDataProvider = ({
           }
         }
       } else {
-        // if (forceRefresh) {
-        //   const data = await getAlarcoinsAlumno(); // API
-        //   alarcoinAlumno(data);
-        //   await saveTransaccionCoinAlumno(data);
-        // } else {
-        //   const local = await getTransaccionCoinAlumno();
-        //   if (local) {
-        //     alarcoinAlumno(local);
-        //   } else {
-        //     const data = await getAlarcoinsAlumno(); // API
-        //     alarcoinAlumno(data);
-        //     await saveTransaccionCoinAlumno(data);
-        //   }
-        // }
+        if (forceRefresh) {
+          const data = await getHistorialAlumno(); // API
+          transaccionCoinAlumno(data);
+          await saveTransaccionCoinAlumno(data);
+        } else {
+          const local = await getTransaccionCoinAlumno();
+          if (local) {
+            transaccionCoinAlumno(local);
+          } else {
+            const data = await getHistorialAlumno(); // API
+            transaccionCoinAlumno(data);
+            await saveTransaccionCoinAlumno(data);
+          }
+        }
       }
     } catch (e) {
       console.error("Error cargando alarcoins:", e);

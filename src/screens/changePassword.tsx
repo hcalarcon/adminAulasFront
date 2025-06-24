@@ -48,7 +48,6 @@ const ChangePassword = () => {
 
       setUser({ ...updatedUser });
       await saveUser(updatedUser);
-      navigator.navigate("Main" as never);
     } catch (error: any) {
       setApiError(error.message || "Error al cambiar la contraseña");
     } finally {
@@ -107,7 +106,7 @@ const ChangePassword = () => {
 
                   <Button
                     mode="contained"
-                    onPress={() => handleSubmit}
+                    onPress={() => handleSubmit()}
                     style={styles.button}
                     disabled={loading}
                     loading={loading}

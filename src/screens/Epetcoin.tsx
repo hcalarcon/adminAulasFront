@@ -1,25 +1,18 @@
 import { Layout } from "../layout/layout";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Platform,
-  Pressable,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Platform, Pressable, useWindowDimensions, View } from "react-native";
 import { useAppData } from "../context/appDataContext";
 import { useAuth } from "../context/authContent";
-import AvatarCard from "../components/avatarCard";
+import AvatarCard from "../components/AvatarCard";
 import AlarcoinModal from "../components/EpetcoinModal";
 import { User } from "../types/UserType";
 import LoadError from "../components/LoadError";
-import MateriasCard from "../components/materiaCard";
-import { TransaccionCoinAulaAlumnoType } from "../types/EpetcoinType";
-import ResponsiveGrid from "../components/ResponsiveGrid";
+import MateriasCard from "../components/MateriaCard";
 import {
-  getTransaccionCoinAlumno,
-  getTransaccionCoinProfe,
-} from "../utils/storage";
+  TransaccionCoinAlumnoType,
+  TransaccionCoinAulaAlumnoType,
+} from "../types/EpetcoinType";
+import ResponsiveGrid from "../components/ResponsiveGrid";
 import { MateriasAlumnosType } from "../types/AulaType";
 import { Button, Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
@@ -27,16 +20,19 @@ import CrearEpetcoinForm from "../components/CrearEpetcoinForm";
 
 const Alarcoin = () => {
   const { user } = useAuth();
-  const { alumnosMap, loadAlarcoins, alarcoinsError, aulas, epetCoin } =
-    useAppData();
+  const {
+    alumnosMap,
+    loadAlarcoins,
+    alarcoinsError,
+    aulas,
+    epetCoin,
+    transaccioncoins,
+  } = useAppData();
   const [selectedAlumno, setSelectedAlumno] = useState<User | null>(null);
   const [selectedAula, setSelectedAula] =
     useState<TransaccionCoinAulaAlumnoType>();
   const [visible, setVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [coin, setCoin] = useState<null | TransaccionCoinAulaAlumnoType[]>(
-    null
-  );
 
   const { width } = useWindowDimensions();
 
@@ -46,40 +42,43 @@ const Alarcoin = () => {
     return 1;
   }, [width]);
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      if (user?.is_teacher) {
-        const local = await getTransaccionCoinProfe();
-        if (local && Array.isArray(local)) {
-          console.log("paso local");
-          setCoin(local);
-          return;
-        }
-      } else {
-        const local = await getTransaccionCoinAlumno();
-        if (local && Array.isArray(local)) {
-          setCoin(local);
-          return;
-        }
-      }
+  // const fetchData = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     if (user?.is_teacher) {
+  //       const local = await getTransaccionCoinProfe();
+  //       if (local && Array.isArray(local)) {
+  //         console.log("paso local");
+  //         setCoin(local);
+  //         return;
+  //       }
+  //     } else {
+  //       const local = await getTransaccionCoinAlumno();
+  //       if (local && Array.isArray(local)) {
+  //         setCoin(local);
+  //         return;
+  //       }
+  //     }
 
-      loadAlarcoins(); // hace el fetch del backend y actualiza
-      setCoin(epetCoin);
-    } catch (error) {
-      console.error("Error al cargar alarcoins:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     loadAlarcoins(); // hace el fetch del backend y actualiza
+  //     setCoin(epetCoin);
+  //   } catch (error) {
+  //     console.error("Error al cargar alarcoins:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
-    //fetchData();
-    loadAlarcoins();
-    setIsLoading(false);
-  }, []);
+    const fetch = async () => {
+      setIsLoading(true);
+      loadAlarcoins();
+      setIsLoading(false);
+    };
 
-  const handleOpenModal = (item: User | TransaccionCoinAulaAlumnoType) => {
+    fetch();
+  }, []);
+  const handleOpenModal = (item: User | TransaccionCoinAlumnoType) => {
     if (user?.is_teacher) {
       setSelectedAlumno(item as User);
     } else {
@@ -93,14 +92,16 @@ const Alarcoin = () => {
     setVisible(false);
   };
 
-  const renderItem = (item: User | TransaccionCoinAulaAlumnoType) => {
+  const renderItem = (item: User | TransaccionCoinAlumnoType) => {
     if (!user?.is_teacher) {
       const materia = aulas.find(
         (a) => a.id === (item as TransaccionCoinAulaAlumnoType).aula_id
       );
       if (!materia) return null;
 
-      const total = (item as TransaccionCoinAulaAlumnoType).epetcoins.reduce(
+      const epetcoins = (item as TransaccionCoinAulaAlumnoType).epetcoins ?? [];
+
+      const total = epetcoins.reduce(
         (acc, a) => acc + (a.suma ? a.cantidad : -a.cantidad),
         0
       );
@@ -110,7 +111,12 @@ const Alarcoin = () => {
           style={({ pressed }) => [{ flex: 1, opacity: pressed ? 0.5 : 1 }]}
           onPress={() => handleOpenModal(item)}
         >
-          <MateriasCard materia={materia} is_alumno={true} alarcoin={total} />
+          <MateriasCard
+            coin={(item as TransaccionCoinAlumnoType).nombre_moneda}
+            materia={materia}
+            is_alumno={true}
+            alarcoin={total}
+          />
         </Pressable>
       );
     } else {
@@ -135,7 +141,7 @@ const Alarcoin = () => {
     | MateriasAlumnosType
     | User
     | TransaccionCoinAulaAlumnoType
-  )[] = user?.is_teacher ? Object.values(alumnosMap) : coin ?? [];
+  )[] = user?.is_teacher ? Object.values(alumnosMap) : transaccioncoins ?? [];
 
   return (
     <Layout>
@@ -181,7 +187,7 @@ const Alarcoin = () => {
                   }}
                 >
                   <Text variant="titleMedium">
-                    {user?.is_teacher ? "Tus Alumnos" : "EpetCoins por aulas"}
+                    {user?.is_teacher ? "Tus Alumnos" : "Tus EpetCoin"}
                   </Text>
                   {Platform.OS !== "android" && Platform.OS !== "ios" && (
                     <View style={{ marginBottom: 10, width: 200 }}>
@@ -201,20 +207,26 @@ const Alarcoin = () => {
                     </View>
                   )}
                 </View>
-
-                <ResponsiveGrid
-                  items={dataList}
-                  numColumns={numColumns}
-                  renderItem={renderItem}
-                  getKey={(item) =>
-                    user?.is_teacher
-                      ? (item as User).id
-                      : (item as TransaccionCoinAulaAlumnoType).nombre
-                  }
-                  refreshing={isLoading}
-                  onRefresh={() => loadAlarcoins(true)}
-                  alumno={!user?.is_teacher}
-                />
+                {/* Agregar validad si hay transaccion para mostrar */}
+                {!user?.is_teacher && transaccioncoins?.length === 0 ? (
+                  <Text style={{ marginTop: 20, textAlign: "center" }}>
+                    Aún no tenés EpetCoins asignadas.
+                  </Text>
+                ) : (
+                  <ResponsiveGrid
+                    items={dataList}
+                    numColumns={numColumns}
+                    renderItem={renderItem}
+                    getKey={(item) =>
+                      user?.is_teacher
+                        ? (item as User).id
+                        : (item as TransaccionCoinAulaAlumnoType).aula_id
+                    }
+                    refreshing={isLoading}
+                    onRefresh={() => loadAlarcoins(true)}
+                    alumno={!user?.is_teacher}
+                  />
+                )}
               </>
             )}
 

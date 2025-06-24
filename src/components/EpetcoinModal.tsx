@@ -276,12 +276,15 @@ const AlarcoinModal = ({
             <Text variant="titleMedium" style={{ marginBottom: 8 }}>
               Historial de Epetcoins
             </Text>
-            {historialPorAula.every((item) => item.epetcoins.length === 0) ? (
+            {historialPorAula.every(
+              (item) => (item.epetcoins ?? []).length === 0
+            ) ? (
               <Text style={{ marginTop: 8 }}>No hay historial aún</Text>
             ) : (
               <ScrollView>
                 {historialPorAula
-                  .filter((aula) => aula.epetcoins.length > 0)
+                  .filter((aula) => (aula.epetcoins ?? []).length > 0)
+
                   .map((aula) => {
                     // Calcular el total de alarcoins para el aula
                     const totalAlarcoins = aula.epetcoins.reduce(

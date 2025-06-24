@@ -22,7 +22,8 @@ export interface TransaccionCoinHistorialType {
 }
 
 export interface TransaccionCoinAlumnoType {
-  id: number;
+  aula_id: number;
+  nombre_moneda: string;
   epetcoins: TransaccionCoinHistorialType[];
 }
 
