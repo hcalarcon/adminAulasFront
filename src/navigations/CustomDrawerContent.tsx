@@ -1,14 +1,11 @@
 import React from "react";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { Drawer, Switch } from "react-native-paper";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import AvatarCard from "../components/AvatarCard";
 import { useAuth } from "../context/authContent";
-import { useNavigation } from "@react-navigation/native";
 import { useThemeContext } from "../context/themeContext";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStack } from "../types/route";
 import { useAppData } from "../context/appDataContext";
 
 export default function CustomDrawerContent(props: any) {
@@ -18,7 +15,7 @@ export default function CustomDrawerContent(props: any) {
 
   const drawerItems = [
     {
-      icon: "grid-outline",
+      icon: "home-outline",
       label: "Dashboard",
       screen: "Home",
     },
@@ -29,8 +26,13 @@ export default function CustomDrawerContent(props: any) {
     },
     {
       icon: "book-outline",
-      label: "Mis Aulas",
+      label: "Asistencias y Clases",
       screen: "MateriasStack",
+    },
+    {
+      icon: "clipboard-outline",
+      label: "Tareas",
+      screen: "Tareas",
     },
     {
       icon: "logo-bitcoin",
@@ -41,27 +43,36 @@ export default function CustomDrawerContent(props: any) {
         : "Mis epetCoins",
       screen: "Alarcoin",
     },
+    ...(user?.is_teacher
+      ? [
+          {
+            icon: "people-outline",
+            label: "Alumnos",
+            screen: "Alumnos",
+          },
+        ]
+      : []),
   ];
-
-  const navigation = useNavigation<NativeStackNavigationProp<RootStack>>();
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
       <View style={styles.container}>
         {/* Perfil */}
         <AvatarCard user={user} loading={loading} isalarcoins={false} />
         {/* Navegación */}
-        <Drawer.Section style={styles.nav}>
-          {drawerItems.map((item, index) => (
-            <DrawerItem
-              key={index}
-              icon={({ color, size }) => (
-                <Ionicons name={item.icon as any} color={color} size={size} />
-              )}
-              label={item.label}
-              onPress={() => props.navigation.navigate(item.screen as any)}
-            />
-          ))}
-        </Drawer.Section>
+        <ScrollView>
+          <Drawer.Section style={styles.nav}>
+            {drawerItems.map((item, index) => (
+              <DrawerItem
+                key={index}
+                icon={({ color, size }) => (
+                  <Ionicons name={item.icon as any} color={color} size={size} />
+                )}
+                label={item.label}
+                onPress={() => props.navigation.navigate(item.screen as any)}
+              />
+            ))}
+          </Drawer.Section>
+        </ScrollView>
 
         {/* Cerrar sesión */}
         <Drawer.Section style={styles.bottom}>
@@ -88,12 +99,6 @@ export default function CustomDrawerContent(props: any) {
             label="Cerrar sesión"
             onPress={() => {
               logout();
-              // navigation.dispatch(
-              //   CommonActions.reset({
-              //     index: 0,
-              //     routes: [{ name: "Login" }],
-              //   })
-              // );
             }}
           />
         </Drawer.Section>
@@ -105,14 +110,13 @@ export default function CustomDrawerContent(props: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 24,
+    paddingTop: 14,
   },
   nav: {
-    marginTop: 16,
+    marginTop: 10,
   },
   bottom: {
-    marginTop: "auto",
-    padding: 5,
+    padding: 3,
   },
   switchRow: {
     flexDirection: "row",

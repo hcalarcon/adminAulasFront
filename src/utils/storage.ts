@@ -1,16 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User as UsuarioType } from "../types/UserType";
-import {
-  MateriasSimpleType as Aula,
-  ClaseType,
-  MateriasAlumnosType,
-} from "../types/AulaType";
+import { MateriasSimpleType as Aula, ClaseType } from "../types/AulaType";
 import {
   Epetcoin,
   TransaccionCoinAulaAlumnoType,
   TransaccionCoinHistorialAulaType,
 } from "../types/EpetcoinType";
 import { AsistenciaAlumnoType } from "../types/AsistenciaType";
+import { TareaBase } from "../types/TareaType";
+import { MisNotas } from "../types/NotaType";
 
 export const saveUser = async (user: UsuarioType) => {
   try {
@@ -214,4 +212,44 @@ export const getTransaccionCoinAlumno = async (): Promise<
     console.error("Error al leer alarcoin del alumno:", error);
     return null;
   }
+};
+
+export const saveTareas = async (tareas: TareaBase[]) => {
+  try {
+    await AsyncStorage.setItem("tareas", JSON.stringify(tareas));
+  } catch (error) {
+    console.error("Error al guardar tareas:", error);
+  }
+};
+
+export const getTareasStorage = async (): Promise<TareaBase[] | null> => {
+  try {
+    const tareasStr = await AsyncStorage.getItem("tareas");
+    return tareasStr ? JSON.parse(tareasStr) : null;
+  } catch (error) {
+    console.error("Error al leer tareas:", error);
+    return null;
+  }
+};
+
+export const getNotasAlumnoStorage = async (): Promise<MisNotas[] | null> => {
+  try {
+    const json = await AsyncStorage.getItem("notasAlumno");
+    return json ? JSON.parse(json) : null;
+  } catch (error) {
+    console.error("Error al leer notas:", error);
+    return null;
+  }
+};
+
+export const saveNotasAlumno = async (data: MisNotas) => {
+  try {
+    await AsyncStorage.setItem("notasAlumno", JSON.stringify(data));
+  } catch (error) {
+    console.error("Error al guardar notas:", error);
+  }
+};
+
+export const clearNotasAlumnoStorage = async () => {
+  await AsyncStorage.removeItem("notasAlumno");
 };

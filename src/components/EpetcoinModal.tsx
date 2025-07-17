@@ -125,7 +125,7 @@ const AlarcoinModal = ({
       setMateriaSeleccionada(null);
       onDismiss();
       loadAlarcoins(true);
-      setMensaje("Alarcoin guardado correctamente.");
+      setMensaje("Transacción guardado correctamente.");
       setVisibleSnack(true);
     } catch (error) {
       setMensaje("error al guardar");

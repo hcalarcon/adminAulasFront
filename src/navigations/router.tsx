@@ -8,7 +8,7 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { AuthProvider, useAuth } from "../context/authContent";
 import HomeScreen from "../screens/home-screen";
 import LoginScreen from "../screens/login-screen";
-import Profile from "../screens/profile";
+import Profile from "../screens/Profile";
 import { Pressable, View } from "react-native";
 import CustomDrawerContent from "./CustomDrawerContent";
 import Alarcoin from "../screens/Epetcoin";
@@ -20,6 +20,8 @@ import { Avatar, useTheme } from "react-native-paper";
 import { useThemeContext } from "../context/themeContext";
 import { getInitials } from "../utils/initials";
 import { useMemo } from "react";
+import Alumnos from "../screens/Alumnos";
+import Tareas from "../screens/evaluacion/Tareas";
 
 const Stack = createNativeStackNavigator<RootStack>();
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -81,6 +83,17 @@ function DrawerNavigator() {
         name="Alarcoin"
         component={Alarcoin}
         options={{ title: "adminAulas | Mis Alarcoin" }}
+      />
+      <Drawer.Screen
+        name="Alumnos"
+        component={Alumnos}
+        options={{ title: "adminAulas | Mis Alumnos" }}
+      />
+
+      <Drawer.Screen
+        name="Tareas"
+        component={Tareas}
+        options={{ title: "adminAulas | Tareas" }}
       />
     </Drawer.Navigator>
   );

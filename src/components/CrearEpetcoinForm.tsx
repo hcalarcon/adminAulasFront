@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 import { TextInput, Button, Text } from "react-native-paper";
 import { useAuth } from "../context/authContent"; // o el path correcto

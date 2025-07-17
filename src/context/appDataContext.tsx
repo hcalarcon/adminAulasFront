@@ -18,6 +18,10 @@ import {
   getTransaccionCoinAlumno,
   saveTransaccionCoinProfe,
   saveTransaccionCoinAlumno,
+  getTareasStorage,
+  saveTareas,
+  getNotasAlumnoStorage,
+  saveNotasAlumno,
 } from "../utils/storage";
 import {
   TransaccionCoinType,
@@ -32,6 +36,10 @@ import {
   getEpetcoin,
   getHistorialAlumno,
 } from "../api/epetcoins";
+import { TareaBase } from "../types/TareaType";
+import { GetTareas, GetTareasAula } from "../api/tarea";
+import { MisNotas, NotaType } from "../types/NotaType";
+import { getNotasMe } from "../api/notas";
 
 interface AppDataContextType {
   aulas: MateriasSimpleType[];
@@ -46,6 +54,14 @@ interface AppDataContextType {
   loadAlarcoins: (forceRefresh?: boolean) => void;
   epetCoin: Epetcoin | null | undefined;
   alarcoinsError: boolean;
+  loadTareas: (forceRefresh?: boolean) => void;
+  tareas: TareaBase[];
+  tareasError: boolean;
+  tareasLoading: boolean;
+  loadNotas: (forceRefresh?: boolean) => void;
+  notas: MisNotas[];
+  notasError: boolean;
+  notasLoading: boolean;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -67,6 +83,12 @@ export const AppDataProvider = ({
   >(null);
   const [alarcoinsError, setAlarcoinsError] = useState(false);
   const [epetCoin, setEpetcoin] = useState<Epetcoin | false | undefined>(false);
+  const [tareas, setTareas] = useState<TareaBase[]>([]);
+  const [tareasError, setTareasError] = useState<boolean>(false);
+  const [tareasLoading, setTareasLoading] = useState<boolean>(false);
+  const [notas, setNotas] = useState<MisNotas[]>([]);
+  const [notasError, setNotasError] = useState<boolean>(false);
+  const [notasLoading, setNotasLoading] = useState<boolean>(false);
 
   //le pasamos una cantidad
   const calcularCantidadEpetcoins = (epetCoin: TransaccionCoinCreateType[]) => {
@@ -135,6 +157,71 @@ export const AppDataProvider = ({
       }
       console.error("Error verificando epetcoin:", error);
       return false;
+    }
+  };
+
+  // Cargar todas las tareas del usuario
+  const loadTareas = async (forceRefresh: boolean = false) => {
+    try {
+      setTareasLoading(true);
+      if (!forceRefresh) {
+        const local = await getTareasStorage();
+        if (local) {
+          setTareas(local);
+          setTareasLoading(false);
+          return;
+        }
+      }
+
+      const data = await GetTareas(); // backend
+      setTareas(data);
+      await saveTareas(data);
+    } catch (error) {
+      setTareasError(true);
+      console.error("Error cargando tareas:", error);
+    } finally {
+      setTareasLoading(false);
+    }
+  };
+
+  const refrescarTareasDeAula = async (
+    aula_id: number,
+    tareasActuales: TareaBase[],
+    setTareas: (t: TareaBase[]) => void
+  ) => {
+    try {
+      const nuevas = await GetTareasAula(aula_id);
+      const actualizadas = [
+        ...tareasActuales.filter((t) => t.aula_id !== aula_id),
+        ...nuevas,
+      ];
+      setTareas(actualizadas);
+      await saveTareas(actualizadas);
+    } catch (error) {
+      console.error("Error actualizando tareas del aula:", error);
+    }
+  };
+
+  const loadNotas = async (forceRefresh: boolean = false) => {
+    try {
+      setNotasLoading(true);
+
+      if (!forceRefresh) {
+        const local = await getNotasAlumnoStorage();
+        if (local) {
+          setNotas(local);
+          setNotasLoading(false);
+          return;
+        }
+      }
+
+      const data = await getNotasMe(); // ← tu función que llama al backend
+      setNotas(data);
+      await saveNotasAlumno(data);
+    } catch (error) {
+      console.error("Error cargando notas:", error);
+    } finally {
+      setNotasLoading(false);
     }
   };
 
@@ -277,6 +364,14 @@ export const AppDataProvider = ({
         loadAlarcoins,
         alarcoinsError,
         epetCoin,
+        tareas,
+        loadTareas,
+        tareasError,
+        tareasLoading,
+        notas,
+        loadNotas,
+        notasLoading,
+        notasError,
       }}
     >
       {children}

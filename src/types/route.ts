@@ -17,4 +17,5 @@ export type DrawerParamList = {
   Perfil: undefined;
   Home: undefined;
   Alarcoin: undefined;
+  Alumnos: undefined;
 };

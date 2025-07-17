@@ -18,3 +18,12 @@ export interface UserUpdateType {
   confirmPassword?: string;
   password?: string;
 }
+
+export interface UserConNota {
+  id: number;
+  nombre: string;
+  apellido: string;
+  nota: string;
+  entregado: boolean;
+  nota_id: number;
+}

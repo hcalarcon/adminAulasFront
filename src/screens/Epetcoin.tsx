@@ -42,33 +42,6 @@ const Alarcoin = () => {
     return 1;
   }, [width]);
 
-  // const fetchData = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     if (user?.is_teacher) {
-  //       const local = await getTransaccionCoinProfe();
-  //       if (local && Array.isArray(local)) {
-  //         console.log("paso local");
-  //         setCoin(local);
-  //         return;
-  //       }
-  //     } else {
-  //       const local = await getTransaccionCoinAlumno();
-  //       if (local && Array.isArray(local)) {
-  //         setCoin(local);
-  //         return;
-  //       }
-  //     }
-
-  //     loadAlarcoins(); // hace el fetch del backend y actualiza
-  //     setCoin(epetCoin);
-  //   } catch (error) {
-  //     console.error("Error al cargar alarcoins:", error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   useEffect(() => {
     const fetch = async () => {
       setIsLoading(true);
@@ -148,7 +121,7 @@ const Alarcoin = () => {
       <LoadError
         isLoading={isLoading}
         hasError={alarcoinsError}
-        errorMessage="Error al cargar los Alarcoins"
+        errorMessage="Error al cargar los epetCoins"
         reLoad={() => loadAlarcoins(true)}
       >
         {isLoading ? (
