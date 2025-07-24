@@ -7,103 +7,12 @@ import {
 } from "../types/EpetcoinType";
 import { urlBase } from "../utils/url";
 import { getFromStorage } from "../utils/storage";
-
-// Crear alarcoin
-// export async function crearAlarcoin(
-//   token: string | null,
-//   data: AlarcoinCreateType
-// ): Promise<Alarcoin> {
-//   const response = await fetch(`${urlBase}/alarcoins/`, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${token}`,
-//     },
-//     body: JSON.stringify(data),
-//   });
-
-//   if (!response.ok) {
-//     const errorData = await response.json();
-//     throw new Error(errorData.detail || "Error al asignar alarcoin");
-//   }
-
-//   return await response.json();
-// }
-
-// // Actualizar alarcoin
-// export async function actualizarAlarcoin(
-//   token: string,
-//   id: number,
-//   data: {
-//     aula_id: number;
-//     alumno_id: number;
-//     detalle: string;
-//     suma: boolean;
-//   }
-// ): Promise<Alarcoin> {
-//   const response = await fetch(`${urlBase}/alarcoins/${id}`, {
-//     method: "PUT",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${token}`,
-//     },
-//     body: JSON.stringify(data),
-//   });
-
-//   if (!response.ok) {
-//     const errorData = await response.json();
-//     throw new Error(errorData.detail || "Error al actualizar alarcoin");
-//   }
-
-//   return await response.json();
-// }
-
-// // Obtener alarcoins del alumno actual
-// export async function getAlarcoinsAlumno(
-//   token: string | null
-// ): Promise<AlarcoinAulaAlumnoType[]> {
-//   const response = await fetch(`${urlBase}/alarcoins/me`, {
-//     headers: {
-//       Authorization: `Bearer ${token}`,
-//     },
-//   });
-
-//   if (!response.ok) {
-//     const errorData = await response.json();
-//     throw new Error(errorData.detail || "Error al obtener mis alarcoins");
-//   }
-
-//   return await response.json();
-// }
-
-// Obtener historial del profesor
-// export async function getHistorialProfesor(
-//   token: string | null
-// ): Promise<MateriasAlumnosType[]> {
-//   const response = await fetch(`${urlBase}/alarcoins/historial`, {
-//     headers: {
-//       Authorization: `Bearer ${token}`,
-//     },
-//   });
-
-//   if (!response.ok) {
-//     const errorData = await response.json();
-//     throw new Error(errorData.detail || "Error al obtener historial");
-//   }
-
-//   return await response.json();
-// }
-
-//obtener epetcoin - nueva
+import { authFetch } from "./authRefresh";
 
 export async function getEpetcoin(): Promise<Epetcoin | undefined> {
   try {
     const token = await getFromStorage("token");
-    const response = await fetch(`${urlBase}/epetcoins/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await authFetch(`${urlBase}/epetcoins/me`, {});
 
     return await response.json();
   } catch (error) {
@@ -118,12 +27,9 @@ export async function crearEpetcoin(
 ): Promise<Epetcoin | undefined> {
   try {
     const token = await getFromStorage("token");
-    const response = await fetch(`${urlBase}/epetcoins/`, {
+    const response = await authFetch(`${urlBase}/epetcoins/`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+
       body: JSON.stringify({ nombre }),
     });
 
@@ -137,12 +43,7 @@ export async function crearEpetcoin(
 export async function getHistorialProfesor(): Promise<
   TransaccionCoinHistorialAulaType[]
 > {
-  const token = await getFromStorage("token");
-  const response = await fetch(`${urlBase}/epetcoins/historial`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await authFetch(`${urlBase}/epetcoins/historial`, {});
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -155,13 +56,9 @@ export async function getHistorialProfesor(): Promise<
 export async function crearTransaccion(
   data: TransaccionCoinCreateType
 ): Promise<TransaccionCoinType> {
-  const token = await getFromStorage("token");
-  const response = await fetch(`${urlBase}/epetcoins/transaccion`, {
+  const response = await authFetch(`${urlBase}/epetcoins/transaccion`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+
     body: JSON.stringify(data),
   });
 
@@ -176,12 +73,7 @@ export async function crearTransaccion(
 export async function getHistorialAlumno(): Promise<
   TransaccionCoinAulaAlumnoType[]
 > {
-  const token = await getFromStorage("token");
-  const response = await fetch(`${urlBase}/epetcoins/historial`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await authFetch(`${urlBase}/epetcoins/historial`, {});
 
   if (!response.ok) {
     const errorData = await response.json();

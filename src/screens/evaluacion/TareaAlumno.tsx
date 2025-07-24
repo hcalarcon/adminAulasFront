@@ -42,18 +42,12 @@ const TareaAlumno = () => {
     .flat()
     .filter((n) => tareaIds.includes(n.tarea_id));
 
-  console.log(notasFiltradas, tareaIds);
-
   // 3. Tareas completadas
   const tareasEntregadas = tareasFiltradas.filter((t) => {
     const hayNotaEntregada = notasFiltradas.some((n) => {
       const coincide = n.tarea_id == t.id && n.entregado;
-      if (coincide) {
-        console.log("→ Coincide:", n);
-      }
       return coincide;
     });
-    console.log("tarea id:", t.id, "¿hay nota entregada?", hayNotaEntregada);
     return hayNotaEntregada;
   });
 
@@ -65,8 +59,11 @@ const TareaAlumno = () => {
   const notasValidas = notasFiltradas.filter((n) => typeof n.nota === "number");
   const promedio =
     notasValidas.length > 0
-      ? Math.round(
-          notasValidas.reduce((acc, n) => acc + n.nota, 0) / notasValidas.length
+      ? parseFloat(
+          (
+            notasValidas.reduce((acc, n) => acc + n.nota, 0) /
+            notasValidas.length
+          ).toFixed(2)
         )
       : 0;
 
@@ -118,7 +115,9 @@ const TareaAlumno = () => {
         <View
           style={[
             styles.mainContent,
-            isLargeScreen && { flexDirection: "row", gap: 24 },
+            isLargeScreen
+              ? { flexDirection: "row", gap: 24 }
+              : { flexDirection: "column-reverse" },
           ]}
         >
           <View style={{ flex: 2 }}>
@@ -148,6 +147,7 @@ const TareaAlumno = () => {
                   const notaTarea = notas[item.aula_id]?.find(
                     (nota: NotaType) => nota.tarea_id === item.id
                   );
+
                   return (
                     <CardTask
                       descripcion={item.descripcion ?? "sin descripción"}
@@ -155,7 +155,7 @@ const TareaAlumno = () => {
                       tipo={item.tipo ?? "sin tipo"}
                       titulo={item.titulo}
                       key={item.id}
-                      estado="Completada"
+                      estado={notaTarea?.entregado ? "Completado" : "Pendiente"}
                       calificacionRecibida={notaTarea?.nota ?? undefined}
                       nombreAula={
                         aulas.find((a) => a.id === item.aula_id)?.nombre ?? "-"
@@ -169,23 +169,36 @@ const TareaAlumno = () => {
           </View>
 
           {/* Resumen (lado derecho en pantallas grandes) */}
-          <View style={[styles.resumenContainer, isLargeScreen && { flex: 1 }]}>
+          <View
+            style={[
+              styles.resumenContainer,
+              isLargeScreen && {
+                flex: 0.7,
+                flexWrap: "nowrap",
+                alignItems: "center",
+                flexDirection: "column",
+              },
+            ]}
+          >
             <CardResumen
-              titulo="Tareas Completadas"
+              titulo="Entregadas"
               valor={`${completadas}/${totalTareas}`}
               progreso={porcentaje}
+              isLarge={isLargeScreen}
             />
 
             <CardResumen
               titulo="Promedio"
               valor={`${promedio}`}
-              subtitulo="Basado en tareas calificadas"
+              subtitulo={isLargeScreen ? "En base a tareas completadas" : ""}
+              isLarge={isLargeScreen}
             />
 
             <CardResumen
-              titulo="Próximos Vencimientos"
+              titulo="Próximas"
               valor={`${vencimientos.length.toString()}`}
-              subtitulo="Tareas pendientes"
+              subtitulo={isLargeScreen ? "Vencimientos cercanos" : ""}
+              isLarge={isLargeScreen}
             />
           </View>
         </View>
@@ -202,7 +215,7 @@ const styles = StyleSheet.create({
     maxWidth: 1000,
     alignSelf: "center", // centra horizontalmente
     width: "100%", // asegura que ocupe todo el ancho disponible
-    paddingHorizontal: 16,
+    paddingHorizontal: 5,
   },
   topBar: {
     flexDirection: "row",
@@ -214,9 +227,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   resumenContainer: {
-    gap: 12,
-    marginTop: 16,
-    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    gap: 10,
+    marginBottom: 10,
   },
   empty: {
     alignItems: "center",

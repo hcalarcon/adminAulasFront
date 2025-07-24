@@ -183,8 +183,7 @@ export default TareaCard;
 
 const styles = StyleSheet.create({
   card: {
-    width: "100%",
-    maxWidth: 400,
+    maxWidth: 360,
     borderRadius: 12,
     marginBottom: 16,
     padding: 2,

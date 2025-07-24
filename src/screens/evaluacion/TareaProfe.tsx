@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, FlatList, StyleSheet, useWindowDimensions } from "react-native";
 import {
   Text,
-  TextInput,
   Button,
-  Menu,
   useTheme,
   IconButton,
   Snackbar,
@@ -12,12 +10,10 @@ import {
   Dialog,
 } from "react-native-paper";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Layout } from "../../layout/layout";
 import TareaCard from "../../components/evaluacion/TareaCard";
 import CrearTareaModal from "../../components/evaluacion/CrearTareaModal";
 import { useAppData } from "../../context/appDataContext";
 import LoadError from "../../components/LoadError";
-import { useAuth } from "../../context/authContent";
 import { TareaBase, tareaNueva } from "../../types/TareaType";
 import { CrearTarea, EditarTarea, eliminarTarea } from "../../api/tarea";
 import {
@@ -26,28 +22,14 @@ import {
   eliminarNotasMasivas,
   actualizarNotasMasivas,
 } from "../../api/notas";
-import { tipoTareaTextoToValor } from "../../utils/tipoTarea";
 import { NotaTareaUpdateMasiva, NotaType } from "../../types/NotaType";
 import CalificarTareaModal from "../../components/evaluacion/CalificarTareaModal";
-import FiltrosTareas from "../../components/evaluacion/FiltroTarea";
 import FiltroTareas from "../../components/evaluacion/FiltroTarea";
-
-const tiposTarea = [
-  "Todas",
-  "Evaluación",
-  "Trabajo Práctico",
-  "Trabajo Teórico",
-  "Actitudinal",
-];
 
 const TareaProfe = () => {
   const { loadTareas, tareas, tareasError, tareasLoading, aulas } =
     useAppData();
 
-  const [filtro, setFiltro] = useState("Todas");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuAulaVisible, setMenuAulaVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [calificarVisible, setCalificarVisible] = useState<boolean>(false);
   const [visibleSnack, setVisibleSnack] = useState(false);
@@ -56,7 +38,6 @@ const TareaProfe = () => {
   const [tareaCalificar, setTareaCalificar] = useState<TareaBase | null>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [mensaje, setMensaje] = useState("");
-  const [aulaFiltro, setAulaFiltro] = useState<number | null>(null);
   const [tareasFiltradass, setTareasFiltradass] = useState<TareaBase[]>([]);
 
   const theme = useTheme();
@@ -69,18 +50,6 @@ const TareaProfe = () => {
   useEffect(() => {
     loadTareas();
   }, []);
-
-  const tareasFiltradas =
-    tareas?.filter((t) => {
-      const coincideTipo =
-        filtro === "Todas" || t.tipo === tipoTareaTextoToValor[filtro];
-      const coincideBusqueda = t.titulo
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const coincideAula = aulaFiltro === null || t.aula_id === aulaFiltro;
-
-      return coincideTipo && coincideBusqueda && coincideAula;
-    }) ?? [];
 
   const handlePressEliminar = (tarea: TareaBase) => {
     setTareaAEliminar(tarea);
@@ -120,7 +89,7 @@ const TareaProfe = () => {
 
   const closeModalCalificar = () => {
     setCalificarVisible(false);
-    loadTareas();
+    loadTareas(true);
   };
 
   const handleGuardarNotas = async (
@@ -197,7 +166,7 @@ const TareaProfe = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <Snackbar
         visible={visibleSnack && mensaje !== ""}
         duration={1000}
@@ -218,7 +187,7 @@ const TareaProfe = () => {
         errorMessage="Error al cargar tareas"
         reLoad={() => loadTareas(true)}
       >
-        <View style={styles.container}>
+        <View style={{ flex: 1 }}>
           {/* Header */}
           <View style={[styles.header]}>
             <View style={{ flex: 1 }}>
@@ -254,127 +223,6 @@ const TareaProfe = () => {
             ></IconButton>
           </View>
 
-          {/* Filtros */}
-          {/* <View
-            style={[
-              styles.filters,
-              {
-                flexDirection: isSmall ? "column" : "row",
-                alignItems: isSmall ? "stretch" : "center",
-                gap: isSmall ? 12 : 16,
-              },
-            ]}
-          >
-            <TextInput
-              mode="outlined"
-              placeholder="Buscar tareas..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={[
-                styles.searchInput,
-                {
-                  minWidth: isSmall ? "100%" : 220,
-                  marginBottom: isSmall ? 8 : 0,
-                },
-              ]}
-              right={
-                <TextInput.Icon
-                  icon={({ color, size }) => (
-                    <Ionicons name="search" size={size} color={color} />
-                  )}
-                />
-              }
-            />
-
-            <View
-              style={{
-                flexDirection: "row",
-                gap: isSmall ? 8 : 12,
-                flex: isSmall ? undefined : 1,
-                width: isSmall ? "100%" : undefined,
-                justifyContent: isSmall ? "flex-start" : "flex-end",
-              }}
-            >
-              <Menu
-                visible={menuVisible}
-                onDismiss={() => setMenuVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setMenuVisible(true)}
-                    icon={({ color, size }) => (
-                      <Ionicons name="filter" size={size} color={color} />
-                    )}
-                    style={{ minWidth: 120 }}
-                  >
-                    {filtro}
-                  </Button>
-                }
-              >
-                {tiposTarea.map((tipo) => (
-                  <Menu.Item
-                    key={tipo}
-                    onPress={() => {
-                      setFiltro(tipo);
-                      setMenuVisible(false);
-                    }}
-                    title={tipo}
-                  />
-                ))}
-              </Menu>
-
-              <Menu
-                visible={menuAulaVisible}
-                onDismiss={() => setMenuAulaVisible(false)}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setMenuAulaVisible(true)}
-                    icon={({ color, size }) => (
-                      <Ionicons
-                        name="school-outline"
-                        size={size}
-                        color={color}
-                      />
-                    )}
-                    style={{ minWidth: 140 }}
-                  >
-                    {aulaFiltro
-                      ? aulas.find((a) => a.id === aulaFiltro)?.nombre
-                      : "Todas las aulas"}
-                  </Button>
-                }
-              >
-                <Menu.Item
-                  onPress={() => {
-                    setAulaFiltro(null);
-                    setMenuAulaVisible(false);
-                  }}
-                  title="Todas las aulas"
-                />
-                {aulas.map((aula) => (
-                  <Menu.Item
-                    key={aula.id}
-                    onPress={() => {
-                      setAulaFiltro(aula.id);
-                      setMenuAulaVisible(false);
-                    }}
-                    title={aula.nombre}
-                  />
-                ))}
-              </Menu>
-            </View>
-          </View> */}
-          {/* <FiltrosTareas
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            filtro={filtro}
-            setFiltro={setFiltro}
-            tiposTarea={tiposTarea}
-            aulaFiltro={aulaFiltro}
-            setAulaFiltro={setAulaFiltro}
-            aulas={aulas} 
-          />*/}
           <FiltroTareas onFiltrar={setTareasFiltradass} />
 
           {/* Lista o vacío */}
@@ -411,19 +259,23 @@ const TareaProfe = () => {
               }
               columnWrapperStyle={numColumns > 1 ? styles.row : undefined}
               renderItem={({ item }) => (
-                <TareaCard
-                  cantidadAlumnos={item.cantidad_alumnos ?? 0}
-                  descripcion={item.descripcion ?? "sis descripción"}
-                  entregados={item.entregados ?? 0}
-                  fechaEntrega={item.fecha_limite ?? "sin limite"}
-                  tipo={item.tipo ?? "sin tipo"}
-                  titulo={item.titulo}
-                  key={item.id}
-                  nombreAula={aulas.find((a) => a.id === item.aula_id)?.nombre}
-                  onCalificar={() => onCalificar(item)}
-                  onEliminar={() => handlePressEliminar(item)}
-                  onEditar={() => onEditar(item as tareaNueva)}
-                />
+                <View style={styles.cardWrapper}>
+                  <TareaCard
+                    cantidadAlumnos={item.cantidad_alumnos ?? 0}
+                    descripcion={item.descripcion ?? "sis descripción"}
+                    entregados={item.entregados ?? 0}
+                    fechaEntrega={item.fecha_limite ?? "sin limite"}
+                    tipo={item.tipo ?? "sin tipo"}
+                    titulo={item.titulo}
+                    key={item.id}
+                    nombreAula={
+                      aulas.find((a) => a.id === item.aula_id)?.nombre
+                    }
+                    onCalificar={() => onCalificar(item)}
+                    onEliminar={() => handlePressEliminar(item)}
+                    onEditar={() => onEditar(item as tareaNueva)}
+                  />
+                </View>
               )}
               contentContainerStyle={{ paddingBottom: 24 }}
             />
@@ -475,11 +327,14 @@ export default TareaProfe;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 1,
+    maxWidth: 1000,
+    alignSelf: "center", // centra horizontalmente
+    width: "100%", // asegura que ocupe todo el ancho disponible
+    paddingHorizontal: 5,
   },
   row: {
-    justifyContent: "center", // Cambiado de "center" a "flex-start"
-    gap: 24, // Más espacio entre cards en desktop
+    justifyContent: "space-between", // Cambiado de "center" a "flex-start"
+    gap: 20, // Más espacio entre cards en desktop
     flexWrap: "wrap",
     marginTop: 15, // Separación visual respecto a los filtros
   },
@@ -511,5 +366,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 32,
+  },
+
+  cardWrapper: {
+    flex: 1,
+    paddingHorizontal: 4, // o gap entre columnas
+    minWidth: 0, // previene overflows raros
   },
 });

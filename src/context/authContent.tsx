@@ -54,9 +54,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      // await removeFromStorage("token");
-      // await removeFromStorage("user");
-      // await removeFromStorage("aulas");
       await AsyncStorage.clear();
     } catch (error) {
       console.log("error al borrar items", error);

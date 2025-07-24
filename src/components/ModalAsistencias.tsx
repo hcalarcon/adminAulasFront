@@ -70,7 +70,7 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
     setIsLoading(true);
     const getAsistencias = async () => {
       try {
-        const data = await AsistenciasClase(clase.id, token);
+        const data = await AsistenciasClase(clase.id);
         setAsistencias(data);
         if (data.length === 0) {
           const todosPresentes: AsistenciaEdit[] = alumnos.map((alumno) => ({
@@ -154,7 +154,7 @@ export default function ModalAsistencia({ visible, onClose, clase }: Props) {
         };
       });
 
-      await setClaseAsistencia(clase.id, token, payload);
+      await setClaseAsistencia(clase.id, payload);
 
       Alert.alert(
         "Guardado",

@@ -6,7 +6,7 @@ import {
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { AuthProvider, useAuth } from "../context/authContent";
-import HomeScreen from "../screens/home-screen";
+import HomeScreen from "../screens/home/home-screen";
 import LoginScreen from "../screens/login-screen";
 import Profile from "../screens/Profile";
 import { Pressable, View } from "react-native";

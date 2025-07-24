@@ -1,13 +1,10 @@
 import { urlBase } from "../utils/url";
 import { MateriasType } from "../types/AulaType";
+import { authFetch } from "./authRefresh";
 
-export async function misMaterias(token: string | null): Promise<MateriasType> {
-  const response = await fetch(`${urlBase}/aulas/mis-aulas`, {
+export async function misMaterias(): Promise<MateriasType> {
+  const response = await authFetch(`${urlBase}/aulas/mis-aulas`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (!response.ok) {

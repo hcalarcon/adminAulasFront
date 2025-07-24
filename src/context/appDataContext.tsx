@@ -38,14 +38,14 @@ import {
 } from "../api/epetcoins";
 import { TareaBase } from "../types/TareaType";
 import { GetTareas, GetTareasAula } from "../api/tarea";
-import { MisNotas, NotaType } from "../types/NotaType";
+import { MisNotas } from "../types/NotaType";
 import { getNotasMe } from "../api/notas";
 
 interface AppDataContextType {
   aulas: MateriasSimpleType[];
   alumnosMap: Record<number, AlumnoType>;
   isLoading: boolean;
-  loadData: (token: string) => void;
+  loadData: () => void;
   transaccioncoins:
     | TransaccionCoinType[]
     | null
@@ -176,6 +176,7 @@ export const AppDataProvider = ({
       const data = await GetTareas(); // backend
       setTareas(data);
       await saveTareas(data);
+      setTareasError(false)
     } catch (error) {
       setTareasError(true);
       console.error("Error cargando tareas:", error);
@@ -273,7 +274,7 @@ export const AppDataProvider = ({
     }
   };
 
-  const loadDataAlumno = async (tokenParam: string) => {
+  const loadDataAlumno = async () => {
     try {
       const cachedAulas = await getAulaStorage();
       if (cachedAulas) {
@@ -282,7 +283,7 @@ export const AppDataProvider = ({
         return;
       }
 
-      const aulasData: MateriasType[] = await getMisAulas(tokenParam);
+      const aulasData: MateriasType[] = await getMisAulas();
       const aulasProcesadas = aulasData.map((aula) => ({
         ...aula,
         alumnos: [user], // el alumno actual
@@ -294,7 +295,7 @@ export const AppDataProvider = ({
     } catch (error) {}
   };
 
-  const loadDataProfe = async (tokenParam: string) => {
+  const loadDataProfe = async () => {
     try {
       const cachedAulas = await getAulaStorage();
       const cachedAulumnosMap = await getAlumnosStorage();
@@ -306,9 +307,7 @@ export const AppDataProvider = ({
         return;
       }
 
-      const aulasData: MateriasAlumnosType[] = await getalumnosAulas(
-        tokenParam
-      );
+      const aulasData: MateriasAlumnosType[] = await getalumnosAulas();
       const alumnosMapTemp: Record<number, AlumnoType> = {};
       const aulasSinAlumnos = aulasData.map((aula) => {
         aula.alumnos.forEach((alumno) => {
@@ -343,9 +342,9 @@ export const AppDataProvider = ({
     if (!effectiveToken) return;
 
     if (user?.is_teacher) {
-      await loadDataProfe(effectiveToken);
+      await loadDataProfe();
     } else {
-      await loadDataAlumno(effectiveToken);
+      await loadDataAlumno();
     }
   };
 

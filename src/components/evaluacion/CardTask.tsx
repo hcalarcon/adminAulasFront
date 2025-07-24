@@ -140,7 +140,7 @@ export default CardTask;
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    maxWidth: 400,
+    maxWidth: 350,
     marginVertical: 8,
     borderRadius: 8,
   },

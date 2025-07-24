@@ -20,7 +20,7 @@ type Props = NativeStackNavigationProp<RootStack, "MateriasStack">;
 const Materias = () => {
   const { width } = useWindowDimensions();
   const numColums = width >= 900 ? 2 : 1;
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigation = useNavigation<Props>();
   const { aulas } = useAppData();
 
@@ -30,7 +30,7 @@ const Materias = () => {
   const getAsistencias = async () => {
     setIsLoading(true);
     try {
-      const data = await getAsistenciasPorClase(token);
+      const data = await getAsistenciasPorClase();
       setAsistencias(data);
       await saveAsistencias(data); // actualizar local también
     } catch (error) {
@@ -83,16 +83,20 @@ const Materias = () => {
           </Text>
         </View>
 
-        <Button
-          mode="contained"
-          style={styles.button}
-          onPress={getAsistencias}
-          icon={({ color, size }) => (
-            <Ionicons name="refresh" color={color} size={size} />
-          )}
-        >
-          Refrescar
-        </Button>
+        {!user?.is_teacher ? (
+          <Button
+            mode="contained"
+            style={styles.button}
+            onPress={getAsistencias}
+            icon={({ color, size }) => (
+              <Ionicons name="refresh" color={color} size={size} />
+            )}
+          >
+            Refrescar
+          </Button>
+        ) : (
+          ""
+        )}
       </View>
 
       <ScrollView

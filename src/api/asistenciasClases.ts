@@ -1,17 +1,14 @@
 import { AsistenciaAlumnoType, AsistenciaType } from "../types/AsistenciaType";
 import { urlBase } from "../utils/url";
+import { authFetch } from "./authRefresh";
 
 export async function AsistenciasClase(
-  clase_id: number,
-  token: string | null
+  clase_id: number
 ): Promise<AsistenciaType[]> {
-  const response = await fetch(
+  const response = await authFetch(
     `${urlBase}/asistencias/asistencias-por-clase/${clase_id}`,
     {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     }
   );
 
@@ -23,19 +20,16 @@ export async function AsistenciasClase(
   return await response.json();
 }
 
-export async function getAsistenciasPorClase(
-  token: string | null
-): Promise<AsistenciaAlumnoType[]> {
-  const response = await fetch(`${urlBase}/asistencias/mis-asistencias`, {
+export async function getAsistenciasPorClase(): Promise<
+  AsistenciaAlumnoType[]
+> {
+  const response = await authFetch(`${urlBase}/asistencias/mis-asistencias`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.detail || "Error al iniciar sesión");
+    throw new Error(errorData.detail || "Error al obtener asistencias");
   }
 
   return await response.json();

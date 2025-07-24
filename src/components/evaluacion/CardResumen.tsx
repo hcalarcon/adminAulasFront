@@ -8,13 +8,20 @@ interface Props {
   valor: string;
   subtitulo?: string;
   progreso?: number; // 0 - 100
+  isLarge?: boolean;
 }
 
-const CardResumen = ({ titulo, valor, subtitulo, progreso }: Props) => {
+const CardResumen = ({
+  titulo,
+  valor,
+  subtitulo,
+  progreso,
+  isLarge,
+}: Props) => {
   const { colors } = useTheme();
 
   return (
-    <Card style={styles.card}>
+    <Card style={[styles.card, isLarge ? { width: 150 } : { maxWidth: 100 }]}>
       <Card.Title title={titulo} titleStyle={styles.titulo} />
       <Card.Content>
         <Text variant="headlineMedium" style={styles.valor}>
@@ -39,18 +46,19 @@ const CardResumen = ({ titulo, valor, subtitulo, progreso }: Props) => {
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 12,
+    marginBottom: 8,
     borderRadius: 12,
     elevation: 1,
-    maxWidth: 150,
   },
   titulo: {
     fontSize: 14,
     color: "#666",
+    textAlign: "center",
   },
   valor: {
     fontWeight: "bold",
     marginTop: 4,
+    textAlign: "center",
   },
   progress: {
     marginTop: 6,
@@ -60,6 +68,7 @@ const styles = StyleSheet.create({
   subtitulo: {
     marginTop: 4,
     color: "#888",
+    textAlign: "center",
   },
 });
 

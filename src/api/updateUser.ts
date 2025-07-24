@@ -1,16 +1,12 @@
 // services/userService.ts
 import { User, UserUpdateType } from "../types/UserType";
-import { getFromStorage } from "../utils/storage";
 import { urlBase } from "../utils/url";
+import { authFetch } from "./authRefresh";
 
 export async function updateUser(data: UserUpdateType): Promise<User> {
-  const token = await getFromStorage("token");
-  const response = await fetch(`${urlBase}/users/me`, {
+  const response = await authFetch(`${urlBase}/users/me`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+
     body: JSON.stringify(data),
   });
 

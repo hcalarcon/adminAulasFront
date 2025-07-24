@@ -1,15 +1,10 @@
 import { urlBase } from "../utils/url";
 import { ClaseType } from "../types/AulaType";
+import { authFetch } from "./authRefresh";
 
-export async function clasesMateria(
-  aulaId: number,
-  token: string | null
-): Promise<ClaseType[]> {
-  const response = await fetch(`${urlBase}/clases/aulas/${aulaId}/clases`, {
+export async function clasesMateria(aulaId: number): Promise<ClaseType[]> {
+  const response = await authFetch(`${urlBase}/clases/aulas/${aulaId}/clases`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (!response.ok) {

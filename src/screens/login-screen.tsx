@@ -43,6 +43,7 @@ export default function LoginScreen() {
       setToken(response.access_token);
       await saveUser(response.user);
       await saveToStorage("token", response.access_token);
+      await saveToStorage("refresh_token", response.refresh_token);
       loadData(response.access_token);
     } catch (error: any) {
       setError("Credenciales inválidas");

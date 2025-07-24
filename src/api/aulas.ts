@@ -1,14 +1,10 @@
 import { urlBase } from "../utils/url";
 import { MateriasAlumnosType, MateriasType } from "../types/AulaType";
+import { authFetch } from "./authRefresh";
 
-export async function getalumnosAulas(
-  token: string | null
-): Promise<MateriasAlumnosType[]> {
-  const response = await fetch(`${urlBase}/aulas/mis-aulas-con-alumnos`, {
+export async function getalumnosAulas(): Promise<MateriasAlumnosType[]> {
+  const response = await authFetch(`${urlBase}/aulas/mis-aulas-con-alumnos`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (!response.ok) {
@@ -19,12 +15,9 @@ export async function getalumnosAulas(
   return await response.json();
 }
 
-export async function getMisAulas(token: string): Promise<MateriasType[]> {
-  const response = await fetch(`${urlBase}/aulas/mis-aulas`, {
+export async function getMisAulas(): Promise<MateriasType[]> {
+  const response = await authFetch(`${urlBase}/aulas/mis-aulas`, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   if (!response.ok) {

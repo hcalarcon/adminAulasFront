@@ -1,3 +1,8 @@
+export type MisNotas = {
+  aulaId: number;
+  notas: NotaType[];
+};
+
 export interface NotaType {
   tarea_id: number;
   alumno_id: number;
@@ -16,9 +21,4 @@ export type NotaTareaUpdate = {
 export type NotaTareaUpdateMasiva = {
   tarea_id: number;
   notas: NotaTareaUpdate[];
-};
-
-export type MisNotas = {
-  aulaId: number;
-  notas: NotaType[];
 };

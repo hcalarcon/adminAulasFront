@@ -47,7 +47,7 @@ export default function DetallesMaterias() {
       }
 
       // Si no hay local o se fuerza el fetch
-      const data = await clasesMateria(materia.id, efectiveToken);
+      const data = await clasesMateria(materia.id);
       setClases(data);
       await saveClases(materia.id, data); // guardar local
     } catch (error) {
@@ -281,28 +281,6 @@ export default function DetallesMaterias() {
                 </Button>
               ))}
             </View>
-
-            {/* <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
-              <Button
-                mode={
-                  cuatrimestreSeleccionado === null ? "contained" : "outlined"
-                }
-                onPress={() => setCuatrimestreSeleccionado(null)}
-              >
-                Todos los cuatris
-              </Button>
-              {[1, 2].map((c) => (
-                <Button
-                  key={c}
-                  mode={
-                    cuatrimestreSeleccionado === c ? "contained" : "outlined"
-                  }
-                  onPress={() => setCuatrimestreSeleccionado(c)}
-                >
-                  Cuatri {c}
-                </Button>
-              ))}
-            </View> */}
 
             <ScrollView
               contentContainerStyle={{
